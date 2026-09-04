@@ -1,0 +1,17 @@
+# 依赖与构建
+node_modules/
+dist/
+*.log
+
+# 密钥与本地运行痕迹
+.env
+.env.*
+.agents/
+.qagent/
+.cache/
+
+# 产物（交付至 toff314/poetry-public，git-lfs 跟踪）
+web-system/data/
+web-system/public/
+web-system/server.log
+cover.jpeg
