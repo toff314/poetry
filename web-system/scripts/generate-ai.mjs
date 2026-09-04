@@ -228,6 +228,7 @@ if (process.argv.includes('--dry-run')) {
 }
 
 const genDir = path.join(PUB_GEN, rawId);
+fs.mkdirSync(genDir, { recursive: true });
 // 生图引擎：默认 doubao-cli（豆包网页版 Seedream，直出 1920 JPEG）；设 IMAGE_ENGINE=ark 切回火山方舟 Ark Seedream API（ark-image.mjs）
 const IMAGE_ENGINE = String(process.env.IMAGE_ENGINE || 'doubao').toLowerCase();
 
@@ -235,7 +236,7 @@ const IMAGE_ENGINE = String(process.env.IMAGE_ENGINE || 'doubao').toLowerCase();
 const ERA = String(poem.dynasty || '古典').replace('朝', '') || '古典';
 function buildPrompt(hint) {
   return (
-    `电影感写实古风画面（${ERA}氛围、真实摄影质感、克制水墨调色）：${hint}` +
+    `电影感写实古风画面（${ERA}氛围、真实摄影质感）：${hint}` +
     `；构图中主体偏右侧，左侧与下方保留暗部负空间以便叠加竖排诗句` +
     `；写实历史电影质感、真实摄影、无文字、无书法、无印章、无水印、无现代物体`
   );
@@ -256,14 +257,13 @@ function runDoubaoImage(prompt, out) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'poetry-doubao-'));
   const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '1920', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
   const src = path.join(tmp, 'cover.jpeg');
-  const ok = r.status === 0 && fs.existsSync(src);
-  const errOut = (r.stderr || r.stdout || '').slice(-400);
-  try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
-  if (!ok) {
-    console.error('doubao-cli 输出:', errOut);
+  if (r.status !== 0 || !fs.existsSync(src)) {
+    console.error('doubao-cli 输出:', (r.stderr || r.stdout || '').slice(-400));
+    try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
     fail(`生图失败 ${out}（doubao）`);
   }
   fs.copyFileSync(src, out);
+  try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
 }
 
 setStage('images', 12, `开始 AI 生图（${IMAGE_ENGINE === 'ark' ? 'Ark Seedream API' : 'doubao-cli'}，共 ${imgTasks.length} 张，每张约 30-90 秒）`);
