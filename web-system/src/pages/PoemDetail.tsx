@@ -9,7 +9,7 @@ import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, matchBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
 import DanmakuLayer from '../components/DanmakuLayer';
-import VideoPanel from '../components/VideoPanel';
+import FullPoemPlayer from '../components/FullPoemPlayer';
 type ClosingBlock = { head: string; body: string };
 
 function splitClosing(text: string): ClosingBlock[] {
@@ -468,7 +468,6 @@ export default function PoemDetail() {
   return (
     <div className="relative">
       <DanmakuLayer poemId={id || ''} />
-      <VideoPanel poemId={id || ''} />
       <audio ref={audioRef} preload="auto" />
       <audio ref={bgmRef} preload="auto" loop />
 
@@ -588,6 +587,7 @@ export default function PoemDetail() {
               {poem.definingLine}
             </blockquote>
             <p className="mt-8 text-lg text-silver leading-relaxed max-w-lg">{poem.intro}</p>
+            <FullPoemPlayer poemId={id || ''} title={poem.title} />
           </div>
         </section>
 

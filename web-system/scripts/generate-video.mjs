@@ -6,7 +6,7 @@
  *   node scripts/generate-video.mjs <poemId> [--task <taskId>] [--avatar <asset-xxxx>]
  *
  * 两种模式：
- *   A) 图生视频（默认）：每张图（hero / scene-N）配对应诗句 → 一个视频任务
+ *   A) 图生视频（默认）：每张场景图（scene-N）配对应诗句 → 一个视频任务
  *   B) 虚拟人像模式（--avatar asset-xxxx）：人物由官方虚拟人像库资产出演，
  *      每段诗句由虚拟形象演绎 → 不涉及真人肖像合规拦截。
  *      API：reference_images:["asset://<id>"] + use_virtual_avatar:true
@@ -162,26 +162,24 @@ async function main() {
   }
   if (!avatarMode && !ASSET_BASE) return fail('图生视频需配置 PUBLIC_ASSET_BASE；虚拟人像模式请用 --avatar auto 或 --avatar <asset-id>');
 
-  const heroPrompt = String(gen.definingLine || gen.sections[0]?.original || gen.title || '').slice(0, 120);
   const clips = [];
   if (avatarMode) {
     // B) 虚拟人像模式：仅诗句驱动，人物由官方形象出演（无图参考）
-    clips.push({ id: 'hero', image: '', prompt: heroPrompt });
+    // 只生成场景段（scene-N），不含 hero（首屏已有静态 hero，其诗句与首段重复）
     for (const s of gen.sections) {
-      clips.push({ id: String(s.id || `scene-${clips.length}`), image: '', prompt: String(s.original || '').slice(0, 120) });
+      clips.push({ id: String(s.id || `scene-${clips.length + 1}`), image: '', prompt: String(s.original || '').slice(0, 120) });
     }
   } else {
     // A) 图生视频：按 scene id 推导规范图路径（防御旧数据图文错位），同图去重
+    // 只生成场景段（scene-N），不含 hero
     const toRel = (sceneId) => `/generated/${rawId}/${sceneId}.jpg`;
     const resolveImage = (sceneId, declared) => {
       const ok = typeof declared === 'string' && declared.startsWith('/generated/');
       return ok && declared.endsWith(`/${sceneId}.jpg`) ? declared : toRel(sceneId);
     };
     const seenImg = new Set();
-    const heroRaw = typeof gen.heroImage === 'string' && gen.heroImage.startsWith('/generated/') ? gen.heroImage : '';
-    if (heroRaw) { seenImg.add(heroRaw); clips.push({ id: 'hero', image: heroRaw, prompt: heroPrompt }); }
     for (const s of gen.sections) {
-      const sid = String(s.id || `scene-${clips.length}`);
+      const sid = String(s.id || `scene-${clips.length + 1}`);
       const image = resolveImage(sid, s.image);
       if (image && !seenImg.has(image)) { seenImg.add(image); clips.push({ id: sid, image, prompt: String(s.original || '').slice(0, 120) }); }
     }

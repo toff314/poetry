@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -227,7 +228,8 @@ if (process.argv.includes('--dry-run')) {
 }
 
 const genDir = path.join(PUB_GEN, rawId);
-// 生图统一走火山方舟 Ark Seedream（ark-image.mjs，直出 1920 JPEG，替代 doubao-cli）
+// 生图引擎：默认 doubao-cli（豆包网页版 Seedream，直出 1920 JPEG）；设 IMAGE_ENGINE=ark 切回火山方舟 Ark Seedream API（ark-image.mjs）
+const IMAGE_ENGINE = String(process.env.IMAGE_ENGINE || 'doubao').toLowerCase();
 
 // ── 2. 生图（hero + 每段） ──────────────────────────────────────────
 const ERA = String(poem.dynasty || '古典').replace('朝', '') || '古典';
@@ -243,20 +245,34 @@ const imgTasks = [
   ...sections.map((s, i) => ({ name: `scene-${i + 1}`, hint: s.imageHint })),
 ];
 
-setStage('images', 12, `开始 AI 生图（共 ${imgTasks.length} 张，每张约 30-60 秒）`);
+function runArkImage(prompt, out) {
+  const r = spawnSync('node', [path.join(__dirname, 'ark-image.mjs'), prompt, '--out', out, '--watermark', '0'], { encoding: 'utf-8', timeout: 420000 });
+  if (r.status !== 0) {
+    console.error('ark-image stderr:', (r.stderr || '').slice(-400));
+    fail(`生图失败 ${out}（ark）`);
+  }
+}
+function runDoubaoImage(prompt, out) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'poetry-doubao-'));
+  const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '1920', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
+  const src = path.join(tmp, 'cover.jpeg');
+  const ok = r.status === 0 && fs.existsSync(src);
+  const errOut = (r.stderr || r.stdout || '').slice(-400);
+  try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
+  if (!ok) {
+    console.error('doubao-cli 输出:', errOut);
+    fail(`生图失败 ${out}（doubao）`);
+  }
+  fs.copyFileSync(src, out);
+}
+
+setStage('images', 12, `开始 AI 生图（${IMAGE_ENGINE === 'ark' ? 'Ark Seedream API' : 'doubao-cli'}，共 ${imgTasks.length} 张，每张约 30-90 秒）`);
 for (let i = 0; i < imgTasks.length; i++) {
   const t = imgTasks[i];
   const out = path.join(genDir, `${t.name}.jpg`);
   setStage('images', 12 + Math.round((i / imgTasks.length) * 58), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
-  // 火山方舟 Seedream（ark-image.mjs 直出 1920 JPEG，替代 doubao-cli）
-  const r = spawnSync('node', [path.join(__dirname, 'ark-image.mjs'), buildPrompt(t.hint), '--out', out, '--watermark', '0'], {
-    encoding: 'utf-8',
-    timeout: 420000,
-  });
-  if (r.status !== 0) {
-    console.error('ark-image stderr:', (r.stderr || '').slice(-400));
-    fail(`生图失败 ${t.name}`);
-  }
+  if (IMAGE_ENGINE === 'ark') runArkImage(buildPrompt(t.hint), out);
+  else runDoubaoImage(buildPrompt(t.hint), out);
 }
 
 // ── 4. 分段朗诵（默认云健） ────────────────────────────────────────
