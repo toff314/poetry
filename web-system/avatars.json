@@ -1,0 +1,414 @@
+{
+  "_readme": "火山方舟虚拟人像资产库（体验中心 portrait 集）。程序按诗词气质自动挑选（--avatar auto 按 poemId 稳定选中一个，整诗统一），不做用户选择。metadata: gender/age/occupation/temperament",
+  "_note": "本批来自体验中心 portrait 前 30（以 24 岁为主）；如需要更多年龄段/朝代角色，可用体验中心按 Age/Country 过滤后补充",
+  "items": [
+    {
+      "id": "asset-20260804202330-bps7t",
+      "gender": null,
+      "age": null,
+      "occupation": null,
+      "temperament": null,
+      "ancient": null,
+      "roles": [],
+      "note": "已验证可用（望岳实测），兜底默认"
+    },
+    {
+      "id": "asset-20260804202332-gcmkm",
+      "gender": "男",
+      "age": 53,
+      "nation": "尼泊尔",
+      "occupation": "青训营教练",
+      "temperament": "开朗",
+      "ancient": false
+    },
+    {
+      "id": "asset-20260804202251-7gnd4",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "水师提督",
+      "temperament": "倔强",
+      "ancient": true,
+      "roles": [
+        "武将",
+        "豪放",
+        "大江",
+        "军旅"
+      ]
+    },
+    {
+      "id": "asset-20260804202230-x5rlz",
+      "gender": "男",
+      "age": 24,
+      "nation": "朝鲜",
+      "occupation": "民宿老板",
+      "temperament": "温柔",
+      "ancient": false
+    },
+    {
+      "id": "asset-20260804202323-67p4m",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "藏书阁主人",
+      "temperament": "书卷气",
+      "ancient": true,
+      "roles": [
+        "文士",
+        "书卷",
+        "雅致",
+        "怀古",
+        "隐居"
+      ]
+    },
+    {
+      "id": "asset-20260804202241-qx4x7",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "水师提督",
+      "temperament": "活泼",
+      "ancient": true,
+      "roles": [
+        "武将",
+        "少年气",
+        "豪放"
+      ]
+    },
+    {
+      "id": "asset-20260804202316-ptkqg",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "镖师",
+      "temperament": "乖张",
+      "ancient": true,
+      "roles": [
+        "侠客",
+        "行旅",
+        "江湖"
+      ]
+    },
+    {
+      "id": "asset-20260804202225-m9mx9",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "梨园名角",
+      "temperament": "知性美",
+      "ancient": true,
+      "roles": [
+        "名伶",
+        "吟咏",
+        "婉转"
+      ]
+    },
+    {
+      "id": "asset-20260804202306-5k88h",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "当家主母",
+      "temperament": "阳光",
+      "ancient": true,
+      "roles": [
+        "家宅",
+        "温情",
+        "日常"
+      ]
+    },
+    {
+      "id": "asset-20260804202301-blfxj",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "钦差大臣",
+      "temperament": "儒雅",
+      "ancient": true,
+      "roles": [
+        "朝堂",
+        "气度"
+      ]
+    },
+    {
+      "id": "asset-20260804202300-dfnsm",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "戏楼名伶",
+      "temperament": "空灵",
+      "ancient": true,
+      "roles": [
+        "歌姬",
+        "月下",
+        "清婉",
+        "相思"
+      ]
+    },
+    {
+      "id": "asset-20260804202223-r6g8l",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "内阁首辅",
+      "temperament": "慈祥",
+      "ancient": true,
+      "roles": [
+        "政事",
+        "持重"
+      ]
+    },
+    {
+      "id": "asset-20260804202224-tdsdg",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "传令兵",
+      "temperament": "雅致",
+      "ancient": true,
+      "roles": [
+        "边塞",
+        "行军"
+      ]
+    },
+    {
+      "id": "asset-20260804202235-d2ks4",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "棋待诏",
+      "temperament": "自在",
+      "ancient": true,
+      "roles": [
+        "闲适",
+        "清谈",
+        "禅意"
+      ]
+    },
+    {
+      "id": "asset-20260804202451-xp4mm",
+      "gender": "女",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "戏楼名伶",
+      "temperament": "世故",
+      "ancient": true,
+      "roles": [
+        "老年",
+        "戏台",
+        "沧桑",
+        "余韵"
+      ]
+    },
+    {
+      "id": "asset-20260804202445-vc5tw",
+      "gender": "女",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "云游道士",
+      "temperament": "冷漠",
+      "ancient": true,
+      "roles": [
+        "老年",
+        "方外",
+        "游仙",
+        "隐逸"
+      ]
+    },
+    {
+      "id": "asset-20260804202358-tvzdp",
+      "gender": "男",
+      "age": 37,
+      "nation": "中国",
+      "occupation": "书院山长",
+      "temperament": "魅惑",
+      "ancient": true,
+      "roles": [
+        "中年",
+        "师者",
+        "讲学",
+        "士人"
+      ]
+    },
+    {
+      "id": "asset-20260804202435-cf77p",
+      "gender": "男",
+      "age": 37,
+      "nation": "中国",
+      "occupation": "茶马商队掌柜",
+      "temperament": "儒雅",
+      "ancient": true,
+      "roles": [
+        "中年",
+        "行商",
+        "丝路",
+        "旅人"
+      ]
+    },
+    {
+      "id": "asset-20260804202404-mzn8z",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "武林盟主",
+      "temperament": "明媚",
+      "ancient": true,
+      "roles": [
+        "女侠",
+        "江湖",
+        "英气"
+      ]
+    },
+    {
+      "id": "asset-20260804202452-s6h4v",
+      "gender": "女",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "旗袍大师",
+      "temperament": "可爱",
+      "ancient": false,
+      "roles": [
+        "民国"
+      ]
+    }
+  ],
+  "pick": "auto → 取首条 ancient=true 且 roles 匹配诗句关键字者；无匹配则按 poemId hash 稳定取一个 ancient 形象（整诗统一）",
+  "poets": {
+    "李白": {
+      "main": "asset-20260804202323-67p4m",
+      "supports": [
+        "asset-20260804202316-ptkqg",
+        "asset-20260804202251-7gnd4",
+        "asset-20260804202225-m9mx9"
+      ],
+      "style": "豪放飘逸 · 少年行"
+    },
+    "杜甫": {
+      "main": "asset-20260804202358-tvzdp",
+      "supports": [
+        "asset-20260804202445-vc5tw",
+        "asset-20260804202435-cf77p",
+        "asset-20260804202251-7gnd4"
+      ],
+      "style": "沉郁顿挫 · 士人"
+    },
+    "苏轼": {
+      "main": "asset-20260804202435-cf77p",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202241-qx4x7",
+        "asset-20260804202225-m9mx9"
+      ],
+      "style": "旷达清雄"
+    },
+    "白居易": {
+      "main": "asset-20260804202358-tvzdp",
+      "supports": [
+        "asset-20260804202435-cf77p",
+        "asset-20260804202445-vc5tw",
+        "asset-20260804202323-67p4m"
+      ],
+      "style": "平易流转"
+    },
+    "梅尧臣": {
+      "main": "asset-20260804202435-cf77p",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202323-67p4m"
+      ],
+      "style": "古淡平实"
+    },
+    "王安石": {
+      "main": "asset-20260804202251-7gnd4",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202435-cf77p"
+      ],
+      "style": "拗峭峻洁"
+    },
+    "辛弃疾": {
+      "main": "asset-20260804202251-7gnd4",
+      "supports": [
+        "asset-20260804202316-ptkqg",
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202241-qx4x7"
+      ],
+      "style": "豪放悲壮"
+    },
+    "陆游": {
+      "main": "asset-20260804202251-7gnd4",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202435-cf77p"
+      ],
+      "style": "慷慨激昂"
+    },
+    "黄庭坚": {
+      "main": "asset-20260804202323-67p4m",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202225-m9mx9"
+      ],
+      "style": "生新瘦硬"
+    },
+    "李商隐": {
+      "main": "asset-20260804202323-67p4m",
+      "supports": [
+        "asset-20260804202225-m9mx9",
+        "asset-20260804202358-tvzdp"
+      ],
+      "style": "深情绵邈"
+    },
+    "王维": {
+      "main": "asset-20260804202323-67p4m",
+      "supports": [
+        "asset-20260804202445-vc5tw",
+        "asset-20260804202435-cf77p"
+      ],
+      "style": "空灵山水"
+    },
+    "欧阳修": {
+      "main": "asset-20260804202358-tvzdp",
+      "supports": [
+        "asset-20260804202435-cf77p",
+        "asset-20260804202323-67p4m"
+      ],
+      "style": "疏隽深婉"
+    },
+    "朱熹": {
+      "main": "asset-20260804202358-tvzdp",
+      "supports": [
+        "asset-20260804202323-67p4m",
+        "asset-20260804202435-cf77p"
+      ],
+      "style": "理学理趣"
+    },
+    "文天祥": {
+      "main": "asset-20260804202251-7gnd4",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202316-ptkqg"
+      ],
+      "style": "正气凛然"
+    },
+    "范成大": {
+      "main": "asset-20260804202435-cf77p",
+      "supports": [
+        "asset-20260804202358-tvzdp",
+        "asset-20260804202323-67p4m"
+      ],
+      "style": "田园平实"
+    },
+    "李清照": {
+      "main": "asset-20260804202235-d2ks4",
+      "supports": [
+        "asset-20260804202300-dfnsm",
+        "asset-20260804202301-blfxj",
+        "asset-20260804202404-mzn8z"
+      ],
+      "style": "婉约清照",
+      "gender": "女"
+    }
+  },
+  "_poet_rule": "整诗固定使用该诗人的 main 形象（避免多张脸）；supports 为备选/多版本；未收录诗人回退古风池按 poemId hash"
+}

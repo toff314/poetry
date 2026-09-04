@@ -287,7 +287,9 @@ app.post('/api/video/:id', async (req, res) => {
     fs.mkdirSync(VIDEO_DIR, { recursive: true });
     fs.writeFileSync(path.join(VIDEO_DIR, `${rawId}.json`), JSON.stringify({ status: 'running', stage: 'queued', progress: 0, detail: '排队中…', poemId: rawId, clips: [], startedAt: Date.now() }));
     const { spawn } = await import('child_process');
-    const child = spawn('node', [VIDEO_SCRIPT, rawId, '--task', rawId], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    // 默认 --avatar auto：脚本按作者(诗人)选主形象出演；可 body.avatar 覆盖
+    const avatarArg = String(req.body?.avatar || 'auto');
+    const child = spawn('node', [VIDEO_SCRIPT, rawId, '--task', rawId, '--avatar', avatarArg], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
     let log = '';
     child.stdout.on('data', (d) => { log += d; });
     child.stderr.on('data', (d) => { log += d; });
@@ -302,6 +304,36 @@ app.post('/api/video/:id', async (req, res) => {
       }
     });
     res.json({ success: true, taskId: rawId, status: 'running' });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// 诗人出演形象（主 + 备选）：按作者映射，供页面展示与生成选角
+app.get('/api/avatars/:id', (req, res) => {
+  try {
+    const gid = req.params.id;
+    const genFile = path.join(GENERATED_DIR, `${gid}.json`);
+    let author = '';
+    if (fs.existsSync(genFile)) {
+      try { const g = JSON.parse(fs.readFileSync(genFile, 'utf-8')); author = g?.author || ''; } catch { /* keep */ }
+    }
+    const avFile = path.join(__dirname, 'avatars.json');
+    const av = JSON.parse(fs.readFileSync(avFile, 'utf-8'));
+    const byId = (id) => (av.items || []).find((i) => i.id === id) || null;
+    const pm = (av.poets || {})[author];
+    let main = null;
+    let supports = [];
+    if (pm && pm.main) {
+      main = byId(pm.main);
+      supports = (pm.supports || []).map(byId).filter(Boolean);
+    } else {
+      const cand = (av.items || []).filter((i) => i.ancient === true && i.id);
+      const h = (s) => { let x = 0; for (const ch of String(s)) x = (x * 31 + ch.codePointAt(0)) >>> 0; return x; };
+      main = byId(cand[h(gid) % cand.length]?.id) || byId('asset-20260804202330-bps7t');
+    }
+    if (!supports.length) supports = (av.items || []).filter((i) => i.ancient === true).slice(0, 3).map(byId).filter(Boolean);
+    res.json({ success: true, data: { poemId: gid, author, main, supports } });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }
@@ -451,6 +483,8 @@ app.get('/api/generate-ai/:id', (req, res) => {
 });
 
 // 静态与 SPA fallback
+// 产物资源（generated/audio/videos）由 public 直接静态服务；dist 承载构建产物与 SPA fallback
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

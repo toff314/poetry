@@ -24,7 +24,8 @@ const POETRY_DB = path.join(ROOT, 'data', 'poetry.db');
 
 const rawId = process.argv[2];
 const argVoice = (process.argv.find((a) => a === '--voice') && process.argv[process.argv.indexOf('--voice') + 1]) || 'edge-yunjian';
-const taskId = process.argv[process.argv.indexOf('--task') + 1] || rawId;
+const taskIdx = process.argv.indexOf('--task');
+const taskId = (taskIdx !== -1 && process.argv[taskIdx + 1]) || rawId;
 
 if (!rawId) {
   console.error('用法: node scripts/generate-ai.mjs <rawPoemId> [--voice edge-yunjian] [--task <taskId>]');
@@ -226,8 +227,7 @@ if (process.argv.includes('--dry-run')) {
 }
 
 const genDir = path.join(PUB_GEN, rawId);
-const rawImgDir = path.join(genDir, '_raw');
-fs.mkdirSync(rawImgDir, { recursive: true });
+// 生图统一走火山方舟 Ark Seedream（ark-image.mjs，直出 1920 JPEG，替代 doubao-cli）
 
 // ── 2. 生图（hero + 每段） ──────────────────────────────────────────
 const ERA = String(poem.dynasty || '古典').replace('朝', '') || '古典';
@@ -243,43 +243,21 @@ const imgTasks = [
   ...sections.map((s, i) => ({ name: `scene-${i + 1}`, hint: s.imageHint })),
 ];
 
-setStage('images', 12, `开始 AI 生图（共 ${imgTasks.length} 张，每张约 1 分钟）`);
+setStage('images', 12, `开始 AI 生图（共 ${imgTasks.length} 张，每张约 30-60 秒）`);
 for (let i = 0; i < imgTasks.length; i++) {
   const t = imgTasks[i];
-  const out = path.join(rawImgDir, t.name);
-  setStage('images', 12 + Math.round((i / imgTasks.length) * 55), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
-  const r = spawnSync('doubao-cli', ['generate', buildPrompt(t.hint), '--style', 'cinematic', '--ratio', '16:9', '--no-compress', '--output', out], {
+  const out = path.join(genDir, `${t.name}.jpg`);
+  setStage('images', 12 + Math.round((i / imgTasks.length) * 58), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
+  // 火山方舟 Seedream（ark-image.mjs 直出 1920 JPEG，替代 doubao-cli）
+  const r = spawnSync('node', [path.join(__dirname, 'ark-image.mjs'), buildPrompt(t.hint), '--out', out, '--watermark', '0'], {
     encoding: 'utf-8',
-    timeout: 360000,
+    timeout: 420000,
   });
   if (r.status !== 0) {
-    console.error('doubao stderr:', (r.stderr || '').slice(-300));
+    console.error('ark-image stderr:', (r.stderr || '').slice(-400));
     fail(`生图失败 ${t.name}`);
   }
 }
-
-// ── 3. 压缩为 1920 JPEG ─────────────────────────────────────────────
-setStage('compress', 70, '压缩处理图片…');
-const compressPy = `
-import sys, os, glob
-from PIL import Image
-src, dst = sys.argv[1], sys.argv[2]
-os.makedirs(dst, exist_ok=True)
-for d in sorted(glob.glob(src + '/*')):
-    cov = os.path.join(d, 'cover.jpeg')
-    if not os.path.exists(cov):
-        continue
-    name = os.path.basename(d)
-    im = Image.open(cov)
-    if im.mode != 'RGB':
-        im = im.convert('RGB')
-    w, h = im.size
-    nw = 1920
-    im = im.resize((nw, int(h * nw / w)), Image.LANCZOS)
-    im.save(os.path.join(dst, name + '.jpg'), 'JPEG', quality=82, optimize=True, progressive=True)
-`;
-const cr = spawnSync('python3', ['-c', compressPy, rawImgDir, genDir], { encoding: 'utf-8', timeout: 180000 });
-if (cr.status !== 0) fail('图片压缩失败: ' + (cr.stderr || '').slice(-300));
 
 // ── 4. 分段朗诵（默认云健） ────────────────────────────────────────
 const voice = {

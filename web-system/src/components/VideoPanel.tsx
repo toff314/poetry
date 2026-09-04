@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Film, Loader2, Play, AlertCircle, CheckCircle2, X } from 'lucide-react';
-import { startVideoTask, getVideoTask } from '../lib/api';
-import type { VideoTask } from '../lib/api';
+import { startVideoTask, getVideoTask, getPoemAvatar } from '../lib/api';
+import type { VideoTask, PoemAvatar } from '../lib/api';
 
 const POLL_MS = 5000;
 
@@ -14,6 +14,7 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
   const [task, setTask] = useState<VideoTask | null>(null);
   const [starting, setStarting] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const [cast, setCast] = useState<PoemAvatar | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const poemRef = useRef(poemId);
   poemRef.current = poemId;
@@ -38,6 +39,12 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
   useEffect(() => {
     return stopPoll;
   }, [stopPoll]);
+  useEffect(() => {
+    let disposed = false;
+    getPoemAvatar(poemRef.current).then((res) => { if (!disposed) setCast(res?.data || null); }).catch(() => {});
+    return () => { disposed = true; };
+  }, [poemId]);
+
 
   const start = async () => {
     setStarting(true);
@@ -111,6 +118,15 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
             </p>
           )}
 
+          {cast && (cast.main || (cast.supports || []).length > 0) && (
+            <p className="text-[11px] text-silver/85 leading-relaxed mb-2 border border-darkline/60 rounded-lg px-2.5 py-1.5">
+              {cast.author && <span className="text-paper/80">{cast.author} · </span>}
+              出演：<span className="text-gold">{cast.main?.occupation || '默认形象'}{cast.main?.age ? `（${cast.main.age}岁${cast.main.gender ? ' ' + cast.main.gender : ''}${cast.main.temperament ? ' · ' + cast.main.temperament : ''}）` : ''}</span>
+              {(cast.supports || []).length > 0 && (
+                <span className="text-silver/70"> · 备选：{cast.supports.map((x) => x.occupation || '形象').join('、')}</span>
+              )}
+            </p>
+          )}
           {actionMsg && <p className="text-xs text-gold/90 mb-2 leading-relaxed">{actionMsg}</p>}
           {task?.error && (
             <p className="text-xs text-red-400 mb-2 flex items-start gap-1.5 leading-relaxed">
@@ -147,13 +163,26 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
                   {c.error && <p className="text-[10px] text-red-400/90 break-all mb-1">{c.error}</p>}
                   {c.prompt && <p className="text-[11px] text-paper/60 poem-text mb-1.5 line-clamp-2">{c.prompt}</p>}
                   {c.status === 'done' && src && (
-                    <video
-                      src={src}
-                      controls
-                      preload="metadata"
-                      playsInline
-                      className="w-full rounded-md border border-darkline bg-black"
-                    />
+                    <div className="relative rounded-md overflow-hidden border border-darkline bg-black">
+                      <video
+                        src={src}
+                        controls
+                        preload="metadata"
+                        playsInline
+                        className="w-full block bg-black"
+                      />
+                      {/* 竖排诗句字幕：前端叠加，不进画面 */}
+                      {c.prompt && (
+                        <p
+                          className="poem-text pointer-events-none absolute top-3 right-2.5 max-h-[92%] overflow-hidden font-serif text-[15px] leading-[1.9] tracking-wide text-paper"
+                          style={{ writingMode: 'vertical-rl', textShadow: '0 1px 8px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.9)' }}
+                          title={c.prompt}
+                        >
+                          {c.prompt}
+                        </p>
+                      )}
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-9 bg-gradient-to-t from-black/70 to-transparent" />
+                    </div>
                   )}
                 </div>
               );

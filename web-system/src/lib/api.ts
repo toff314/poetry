@@ -156,3 +156,23 @@ export async function startVideoTask(poemId: string): Promise<{ success: boolean
 export async function getVideoTask(poemId: string): Promise<VideoTask> {
   return fetchJson(`/video/${encodeURIComponent(poemId)}`);
 }
+
+// ── 诗人出演形象（主/备选，供展示与自动选角） ─────────────────────────
+export interface AvatarItem {
+  id: string;
+  gender?: string | null;
+  age?: number | null;
+  occupation?: string | null;
+  temperament?: string | null;
+  ancient?: boolean | null;
+  roles?: string[];
+}
+export interface PoemAvatar {
+  poemId: string;
+  author: string;
+  main: AvatarItem | null;
+  supports: AvatarItem[];
+}
+export async function getPoemAvatar(poemId: string): Promise<{ data: PoemAvatar }> {
+  return fetchJson(`/avatars/${encodeURIComponent(poemId)}`);
+}

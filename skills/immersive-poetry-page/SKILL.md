@@ -117,6 +117,7 @@ Keep the dev server running when the user wants to review locally.
 
 - [references/poetry-analysis.md](references/poetry-analysis.md): textual segmentation and explanation rules.
 - [references/image-direction.md](references/image-direction.md): visual bible and image prompt patterns.
+- [references/video-direction.md](references/video-direction.md): per-scene video prompts — voiceover/recital, frontend-subtitled vertical verses (no on-image text), virtual-avatar casting, Seedance params & QA.
 - [references/page-pattern.md](references/page-pattern.md): page architecture and QA details.
 - `assets/page-template/`: generic HTML, TypeScript, CSS, and config starter.
 - `scripts/extract_imagegen_results.py`: legacy helper for recovering generated PNGs from a rollout JSONL (usually not needed when using doubao-cli).
