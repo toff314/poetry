@@ -22,8 +22,14 @@ ln -s ../poetry-public/web-system/public web-system/public
 cd web-system && npm install && npm run dev
 ```
 
-## 产物同步
-新增资源（AI 生图 / 音频 / 视频 mp4 / 更新数据库）后：
+## 产物同步（双向）
+`sync-public.sh`（与 poetry-public 同级布置）负责工作区 ↔ 产物仓镜像的双向同步（运行时状态不入仓）：
+
 ```bash
-bash scripts/sync-public.sh     # 将产物增量同步进 ../poetry-public 并提示推送
+bash sync-public.sh push              # 工作区 → 镜像 → git add（随后走提交/推送）
+bash sync-public.sh pull              # 镜像 → 工作区（覆盖同名产物，保留多余文件）
+bash sync-public.sh pull --remote     # 先 git pull 远端，再回灌工作区
 ```
+
+新增资源（AI 生图 / 音频 / 视频 mp4 / 更新数据库）后执行 `push`；换机器或恢复资源时执行 `pull [--remote]`。
+默认要求三目录同级：`poetry` / `poetry-public` / `immersive-poetry-page`；可用环境变量 `SRC_WORKSPACE`、`POETRY_PUBLIC_DIR` 覆盖路径。
