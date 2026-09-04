@@ -123,13 +123,28 @@ async function main() {
   if (!gen || !Array.isArray(gen.sections)) return fail('生成包结构不完整');
 
   const heroPrompt = String(gen.definingLine || gen.sections[0]?.original || gen.title || '').slice(0, 120);
+
+  // 图片引用防御：历史生成包存在图文错位（scene-1 误指 hero.jpg 等）。
+  // 规则：优先采用与 scene id 匹配的声明路径；不匹配时按 id 推导规范路径
+  // /generated/<poemId>/<sceneId>.jpg；同一张图仅保留首个 clip（hero 去重）。
+  const toRel = (sceneId) => `/generated/${rawId}/${sceneId}.jpg`;
+  const resolveImage = (sceneId, declared) => {
+    const ok = typeof declared === 'string' && declared.startsWith('/generated/');
+    return ok && declared.endsWith(`/${sceneId}.jpg`) ? declared : toRel(sceneId);
+  };
   const clips = [];
-  if (typeof gen.heroImage === 'string' && gen.heroImage.startsWith('/generated/')) {
-    clips.push({ id: 'hero', image: gen.heroImage, prompt: heroPrompt });
+  const seenImg = new Set();
+  const heroRaw = typeof gen.heroImage === 'string' && gen.heroImage.startsWith('/generated/') ? gen.heroImage : '';
+  if (heroRaw) {
+    seenImg.add(heroRaw);
+    clips.push({ id: 'hero', image: heroRaw, prompt: heroPrompt });
   }
   for (const s of gen.sections) {
-    if (typeof s.image === 'string' && s.image.startsWith('/generated/')) {
-      clips.push({ id: s.id || `scene-${clips.length}`, image: s.image, prompt: String(s.original || '').slice(0, 120) });
+    const sid = String(s.id || `scene-${clips.length}`);
+    const image = resolveImage(sid, s.image);
+    if (image && !seenImg.has(image)) {
+      seenImg.add(image);
+      clips.push({ id: sid, image, prompt: String(s.original || '').slice(0, 120) });
     }
   }
   if (!clips.length) return fail('生成包内没有可用图片（需 /generated/ 开头的图片路径）');
