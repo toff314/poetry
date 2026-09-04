@@ -1,0 +1,50 @@
+# 诗境 Poetry Realm · nginx 反代示例（占位 __DOMAIN__ 替换为你的域名）
+# 说明：本项目 nginx/域名/TLS 建议由外部 ops 管理（参考 askfount-ops 模式），
+#       本文件仅作接入示例：统一 HTTP → HTTPS 后反代到本机 3300。
+# 安装示例：
+#   sudo sed 's/__DOMAIN__/www.example.com/g' poetry.conf.example \
+#       > /etc/nginx/conf.d/poetry.conf
+#   （证书放 /etc/nginx/certs/__DOMAIN__.pem|.key 或按你既有 certbot 方案）
+#   sudo nginx -t && sudo systemctl reload nginx
+
+# 80 → HTTPS
+server {
+    listen 80;
+    server_name __DOMAIN__;
+    return 301 https://__DOMAIN__$request_uri;
+}
+
+# 443 → 反向代理本机服务
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name __DOMAIN__;
+
+    ssl_certificate     /etc/nginx/certs/__DOMAIN__.pem;
+    ssl_certificate_key /etc/nginx/certs/__DOMAIN__.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    client_max_body_size 500M;   # AI 生成/大图等预留
+
+    # 全部请求交给 node（server.js 自带 SPA fallback 与 /api）
+    location / {
+        proxy_pass http://127.0.0.1:3300;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;      # AI 任务轮询长连接
+        proxy_send_timeout 300s;
+    }
+
+    # AI 生成资源（图/音频/视频）长缓存
+    location ~* ^/(generated|audio|videos)/ {
+        proxy_pass http://127.0.0.1:3300;
+        proxy_set_header Host $host;
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+    }
+}

@@ -6,6 +6,7 @@ dist/
 # 密钥与本地运行痕迹
 .env
 .env.*
+!.env.example
 .agents/
 .qagent/
 .cache/

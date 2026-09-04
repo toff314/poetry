@@ -1,0 +1,19 @@
+[Unit]
+Description=Poetry Realm (诗境 · 沉浸式诗词 Web)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=__WEB_DIR__
+Environment="NODE_ENV=production"
+Environment="PORT=3300"
+EnvironmentFile=__WEB_DIR__/.env
+ExecStart=__NODE_BIN__ server.js
+Restart=on-failure
+RestartSec=5
+# 上传/任务超时保护
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
