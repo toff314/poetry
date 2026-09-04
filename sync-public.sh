@@ -25,10 +25,11 @@ ACTION="${1:-push}"
 PULL_REMOTE=0
 for a in "$@"; do [ "$a" = "--remote" ] && PULL_REMOTE=1; done
 
-# 默认同级布局推导：poetry(代码仓) / poetry-public(产物仓) / immersive-poetry-page(工作区) 三目录同级
+# 默认同级布局推导：poetry(代码仓·工作区) 与 poetry-public(产物仓镜像) 同级
+# （immersive-poetry-page 为指向 poetry 的软链别名，不再单独作为工作区）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARENT="$(dirname "$SCRIPT_DIR")"
-WS="${SRC_WORKSPACE:-$PARENT/immersive-poetry-page}"
+WS="${SRC_WORKSPACE:-$PARENT/poetry}"
 MIRROR="${POETRY_PUBLIC_DIR:-$PARENT/poetry-public}"
 
 [ -d "$WS/web-system" ]      || { echo "工作区不存在: $WS"; exit 1; }
