@@ -32,7 +32,7 @@ bash sync-public.sh pull --remote     # 先 git pull 远端，再回灌工作区
 ```
 
 新增资源（AI 生图 / 音频 / 视频 mp4 / 更新数据库）后执行 `push`；换机器或恢复资源时执行 `pull [--remote]`。
-默认要求三目录同级：`poetry` / `poetry-public` / `immersive-poetry-page`；可用环境变量 `SRC_WORKSPACE`、`POETRY_PUBLIC_DIR` 覆盖路径。
+默认要求两目录同级：`poetry` / `poetry-public`；可用环境变量 `SRC_WORKSPACE`、`POETRY_PUBLIC_DIR` 覆盖路径。
 
 ## 生产部署
 参见 [DEPLOYMENT.md](DEPLOYMENT.md)：`sudo bash deploy/deploy.sh serve` 一步部署

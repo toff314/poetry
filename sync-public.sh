@@ -15,7 +15,7 @@
 #       pull 不使用 --delete，避免误删工作区里尚未推送的新产物（同名文件以镜像为准覆盖）。
 #   - 运行时状态文件（data/tasks、data/videos、danmaku.db）两方向都排除，不随仓库流转。
 #   - 可用环境变量覆盖默认路径：
-#       SRC_WORKSPACE=/path/to/immersive-poetry-page
+#       SRC_WORKSPACE=/path/to/poetry
 #       POETRY_PUBLIC_DIR=/path/to/poetry-public
 # ============================================================================
 set -euo pipefail
@@ -26,7 +26,6 @@ PULL_REMOTE=0
 for a in "$@"; do [ "$a" = "--remote" ] && PULL_REMOTE=1; done
 
 # 默认同级布局推导：poetry(代码仓·工作区) 与 poetry-public(产物仓镜像) 同级
-# （immersive-poetry-page 为指向 poetry 的软链别名，不再单独作为工作区）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARENT="$(dirname "$SCRIPT_DIR")"
 WS="${SRC_WORKSPACE:-$PARENT/poetry}"
