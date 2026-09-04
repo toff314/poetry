@@ -176,3 +176,15 @@ export interface PoemAvatar {
 export async function getPoemAvatar(poemId: string): Promise<{ data: PoemAvatar }> {
   return fetchJson(`/avatars/${encodeURIComponent(poemId)}`);
 }
+
+// ── 诗人形象列表（首页走进诗人：主形象图/角色/风格） ──────────────────
+export interface PoetAvatarBrief {
+  name: string;
+  dynasty: string;
+  style?: string;
+  main: { occupation?: string | null; age?: number | null; gender?: string | null; temperament?: string | null; img?: string } | null;
+  supports: { occupation?: string | null; img?: string }[];
+}
+export async function getPoetAvatars(): Promise<{ data: { poets: PoetAvatarBrief[] } }> {
+  return fetchJson('/avatars/poets');
+}

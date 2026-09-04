@@ -1,49 +1,134 @@
 {
-  "_readme": "火山方舟虚拟人像资产库（体验中心 portrait 集）。程序按诗词气质自动挑选（--avatar auto 按 poemId 稳定选中一个，整诗统一），不做用户选择。metadata: gender/age/occupation/temperament",
-  "_note": "本批来自体验中心 portrait 前 30（以 24 岁为主）；如需要更多年龄段/朝代角色，可用体验中心按 Age/Country 过滤后补充",
+  "_v": 2,
+  "_desc": "分层：tier1 重要诗人专属形象（不与他共享）；tier2Pool 其他诗人共用（与 tier1 零交叉）；整诗固定 main。",
+  "tier1": {
+    "李白": {
+      "main": "asset-20260804202323-67p4m",
+      "style": "豪放飘逸 · 少年行",
+      "occupation": "藏书阁主人",
+      "age": 24,
+      "gender": "男",
+      "temperament": "书卷气"
+    },
+    "杜甫": {
+      "main": "asset-20260804202358-tvzdp",
+      "style": "沉郁顿挫 · 士人",
+      "occupation": "书院山长",
+      "age": 37,
+      "gender": "男",
+      "temperament": "魅惑"
+    },
+    "白居易": {
+      "main": "asset-20260720212440-m8wzj",
+      "style": "平易疏淡"
+    },
+    "王维": {
+      "main": "asset-20260804202327-499jv",
+      "style": "空灵方外"
+    },
+    "李商隐": {
+      "main": "asset-20260804202456-59vqm",
+      "style": "深情绵邈"
+    },
+    "杜牧": {
+      "main": "asset-20260720212146-p2cjt",
+      "style": "俊爽儒雅"
+    },
+    "苏轼": {
+      "main": "asset-20260804202440-bmcw9",
+      "style": "旷达清雄 · 翰林",
+      "occupation": "翰林院学士",
+      "age": 37,
+      "gender": "男",
+      "temperament": "叛逆"
+    },
+    "辛弃疾": {
+      "main": "asset-20260804202251-7gnd4",
+      "style": "豪放悲壮 · 军旅",
+      "occupation": "水师提督",
+      "age": 24,
+      "gender": "男",
+      "temperament": "倔强"
+    },
+    "陆游": {
+      "main": "asset-20260804202241-qx4x7",
+      "style": "慷慨激昂 · 少年意气",
+      "occupation": "水师提督",
+      "age": 24,
+      "gender": "男",
+      "temperament": "活泼"
+    },
+    "王安石": {
+      "main": "asset-20260804202330-bps7t",
+      "style": "拗峭峻洁 · 首辅",
+      "occupation": "内阁首辅",
+      "age": 37,
+      "gender": "男",
+      "temperament": "清隽"
+    },
+    "欧阳修": {
+      "main": "asset-20260720212557-s6zxw",
+      "style": "疏隽深婉 · 文宗",
+      "occupation": "六部大司马内阁首辅",
+      "age": 49,
+      "gender": "男",
+      "temperament": "淡定"
+    },
+    "李清照": {
+      "main": "asset-20260804202235-d2ks4",
+      "style": "婉约清照 · 才媛",
+      "occupation": "棋待诏",
+      "age": 24,
+      "gender": "女",
+      "temperament": "自在"
+    }
+  },
+  "tier2Pool": {
+    "male": [
+      "asset-20260804202316-ptkqg",
+      "asset-20260804202511-hkcdj",
+      "asset-20260720203847-dbp4s",
+      "asset-20260804202830-f4689",
+      "asset-20260720203917-pkk5x",
+      "asset-20260720205729-l4dfh",
+      "asset-20260720211907-jw8mc"
+    ],
+    "female": [
+      "asset-20260804202306-5k88h",
+      "asset-20260804202223-r6g8l",
+      "asset-20260804202224-tdsdg",
+      "asset-20260804202300-dfnsm",
+      "asset-20260804202301-blfxj",
+      "asset-20260804202404-mzn8z",
+      "asset-20260804202451-xp4mm",
+      "asset-20260804202445-vc5tw",
+      "asset-20260804202356-5tbz2",
+      "asset-20260720205646-9crdw",
+      "asset-20260720212722-mkk2d"
+    ]
+  },
   "items": [
     {
-      "id": "asset-20260804202330-bps7t",
-      "gender": null,
-      "age": null,
-      "occupation": null,
-      "temperament": null,
-      "ancient": null,
-      "roles": [],
-      "note": "已验证可用（望岳实测），兜底默认"
-    },
-    {
-      "id": "asset-20260804202332-gcmkm",
-      "gender": "男",
-      "age": 53,
-      "nation": "尼泊尔",
-      "occupation": "青训营教练",
-      "temperament": "开朗",
-      "ancient": false
-    },
-    {
-      "id": "asset-20260804202251-7gnd4",
+      "id": "asset-20260804202241-qx4x7",
       "gender": "男",
       "age": 24,
       "nation": "中国",
       "occupation": "水师提督",
-      "temperament": "倔强",
+      "temperament": "活泼",
       "ancient": true,
-      "roles": [
-        "武将",
-        "豪放",
-        "大江",
-        "军旅"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202241-qx4x7.jpg"
     },
     {
-      "id": "asset-20260804202230-x5rlz",
+      "id": "asset-20260804202330-bps7t",
       "gender": "男",
-      "age": 24,
-      "nation": "朝鲜",
-      "occupation": "民宿老板",
-      "temperament": "温柔",
-      "ancient": false
+      "age": 37,
+      "nation": "中国",
+      "occupation": "内阁首辅",
+      "temperament": "清隽",
+      "ancient": true,
+      "group": "t1",
+      "img": "/avatars/asset-20260804202330-bps7t.jpg"
     },
     {
       "id": "asset-20260804202323-67p4m",
@@ -53,41 +138,8 @@
       "occupation": "藏书阁主人",
       "temperament": "书卷气",
       "ancient": true,
-      "roles": [
-        "文士",
-        "书卷",
-        "雅致",
-        "怀古",
-        "隐居"
-      ]
-    },
-    {
-      "id": "asset-20260804202241-qx4x7",
-      "gender": "男",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "水师提督",
-      "temperament": "活泼",
-      "ancient": true,
-      "roles": [
-        "武将",
-        "少年气",
-        "豪放"
-      ]
-    },
-    {
-      "id": "asset-20260804202316-ptkqg",
-      "gender": "男",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "镖师",
-      "temperament": "乖张",
-      "ancient": true,
-      "roles": [
-        "侠客",
-        "行旅",
-        "江湖"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202323-67p4m.jpg"
     },
     {
       "id": "asset-20260804202225-m9mx9",
@@ -97,79 +149,19 @@
       "occupation": "梨园名角",
       "temperament": "知性美",
       "ancient": true,
-      "roles": [
-        "名伶",
-        "吟咏",
-        "婉转"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202225-m9mx9.jpg"
     },
     {
-      "id": "asset-20260804202306-5k88h",
-      "gender": "女",
-      "age": 24,
+      "id": "asset-20260720212557-s6zxw",
+      "gender": "男",
+      "age": 49,
       "nation": "中国",
-      "occupation": "当家主母",
-      "temperament": "阳光",
+      "occupation": "六部大司马内阁首辅",
+      "temperament": "淡定",
       "ancient": true,
-      "roles": [
-        "家宅",
-        "温情",
-        "日常"
-      ]
-    },
-    {
-      "id": "asset-20260804202301-blfxj",
-      "gender": "女",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "钦差大臣",
-      "temperament": "儒雅",
-      "ancient": true,
-      "roles": [
-        "朝堂",
-        "气度"
-      ]
-    },
-    {
-      "id": "asset-20260804202300-dfnsm",
-      "gender": "女",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "戏楼名伶",
-      "temperament": "空灵",
-      "ancient": true,
-      "roles": [
-        "歌姬",
-        "月下",
-        "清婉",
-        "相思"
-      ]
-    },
-    {
-      "id": "asset-20260804202223-r6g8l",
-      "gender": "女",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "内阁首辅",
-      "temperament": "慈祥",
-      "ancient": true,
-      "roles": [
-        "政事",
-        "持重"
-      ]
-    },
-    {
-      "id": "asset-20260804202224-tdsdg",
-      "gender": "女",
-      "age": 24,
-      "nation": "中国",
-      "occupation": "传令兵",
-      "temperament": "雅致",
-      "ancient": true,
-      "roles": [
-        "边塞",
-        "行军"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260720212557-s6zxw.jpg"
     },
     {
       "id": "asset-20260804202235-d2ks4",
@@ -179,56 +171,41 @@
       "occupation": "棋待诏",
       "temperament": "自在",
       "ancient": true,
-      "roles": [
-        "闲适",
-        "清谈",
-        "禅意"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202235-d2ks4.jpg"
     },
     {
-      "id": "asset-20260804202451-xp4mm",
-      "gender": "女",
-      "age": 53,
+      "id": "asset-20260804202456-59vqm",
+      "gender": "男",
+      "age": 24,
       "nation": "中国",
-      "occupation": "戏楼名伶",
-      "temperament": "世故",
+      "occupation": "画师",
+      "temperament": "稳重",
       "ancient": true,
-      "roles": [
-        "老年",
-        "戏台",
-        "沧桑",
-        "余韵"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202456-59vqm.jpg"
     },
     {
-      "id": "asset-20260804202445-vc5tw",
-      "gender": "女",
-      "age": 53,
+      "id": "asset-20260804200917-c6qgj",
+      "gender": "男",
+      "age": 24,
       "nation": "中国",
-      "occupation": "云游道士",
-      "temperament": "冷漠",
+      "occupation": "梨园名角",
+      "temperament": "谦和",
       "ancient": true,
-      "roles": [
-        "老年",
-        "方外",
-        "游仙",
-        "隐逸"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804200917-c6qgj.jpg"
     },
     {
-      "id": "asset-20260804202358-tvzdp",
+      "id": "asset-20260804202440-bmcw9",
       "gender": "男",
       "age": 37,
       "nation": "中国",
-      "occupation": "书院山长",
-      "temperament": "魅惑",
+      "occupation": "翰林院学士",
+      "temperament": "叛逆",
       "ancient": true,
-      "roles": [
-        "中年",
-        "师者",
-        "讲学",
-        "士人"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202440-bmcw9.jpg"
     },
     {
       "id": "asset-20260804202435-cf77p",
@@ -238,12 +215,85 @@
       "occupation": "茶马商队掌柜",
       "temperament": "儒雅",
       "ancient": true,
-      "roles": [
-        "中年",
-        "行商",
-        "丝路",
-        "旅人"
-      ]
+      "group": "t1",
+      "img": "/avatars/asset-20260804202435-cf77p.jpg"
+    },
+    {
+      "id": "asset-20260804202358-tvzdp",
+      "gender": "男",
+      "age": 37,
+      "nation": "中国",
+      "occupation": "书院山长",
+      "temperament": "魅惑",
+      "ancient": true,
+      "group": "t1",
+      "img": "/avatars/asset-20260804202358-tvzdp.jpg"
+    },
+    {
+      "id": "asset-20260804202251-7gnd4",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "水师提督",
+      "temperament": "倔强",
+      "ancient": true,
+      "group": "t1",
+      "img": "/avatars/asset-20260804202251-7gnd4.jpg"
+    },
+    {
+      "id": "asset-20260804202306-5k88h",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "当家主母",
+      "temperament": "阳光",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202306-5k88h.jpg"
+    },
+    {
+      "id": "asset-20260804202223-r6g8l",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "内阁首辅",
+      "temperament": "慈祥",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202223-r6g8l.jpg"
+    },
+    {
+      "id": "asset-20260804202224-tdsdg",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "传令兵",
+      "temperament": "雅致",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202224-tdsdg.jpg"
+    },
+    {
+      "id": "asset-20260804202300-dfnsm",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "戏楼名伶",
+      "temperament": "空灵",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202300-dfnsm.jpg"
+    },
+    {
+      "id": "asset-20260804202301-blfxj",
+      "gender": "女",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "钦差大臣",
+      "temperament": "儒雅",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202301-blfxj.jpg"
     },
     {
       "id": "asset-20260804202404-mzn8z",
@@ -253,162 +303,203 @@
       "occupation": "武林盟主",
       "temperament": "明媚",
       "ancient": true,
-      "roles": [
-        "女侠",
-        "江湖",
-        "英气"
-      ]
+      "group": "t2",
+      "img": "/avatars/asset-20260804202404-mzn8z.jpg"
     },
     {
-      "id": "asset-20260804202452-s6h4v",
+      "id": "asset-20260804202451-xp4mm",
       "gender": "女",
       "age": 53,
       "nation": "中国",
-      "occupation": "旗袍大师",
-      "temperament": "可爱",
-      "ancient": false,
-      "roles": [
-        "民国"
-      ]
+      "occupation": "戏楼名伶",
+      "temperament": "世故",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202451-xp4mm.jpg"
+    },
+    {
+      "id": "asset-20260804202445-vc5tw",
+      "gender": "女",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "云游道士",
+      "temperament": "冷漠",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202445-vc5tw.jpg"
+    },
+    {
+      "id": "asset-20260804202356-5tbz2",
+      "gender": "女",
+      "age": 37,
+      "nation": "中国",
+      "occupation": "云游道士",
+      "temperament": "宁静",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202356-5tbz2.jpg"
+    },
+    {
+      "id": "asset-20260720205646-9crdw",
+      "gender": "女",
+      "age": 29,
+      "nation": "中国",
+      "occupation": "兴隆镖局总镖头",
+      "temperament": "通透",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720205646-9crdw.jpg"
+    },
+    {
+      "id": "asset-20260720212722-mkk2d",
+      "gender": "女",
+      "age": 29,
+      "nation": "中国",
+      "occupation": "岳麓书院山长",
+      "temperament": "果断",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720212722-mkk2d.jpg"
+    },
+    {
+      "id": "asset-20260804202316-ptkqg",
+      "gender": "男",
+      "age": 24,
+      "nation": "中国",
+      "occupation": "镖师",
+      "temperament": "乖张",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202316-ptkqg.jpg"
+    },
+    {
+      "id": "asset-20260804202511-hkcdj",
+      "gender": "男",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "六部尚书",
+      "temperament": "铁憨憨",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202511-hkcdj.jpg"
+    },
+    {
+      "id": "asset-20260720203847-dbp4s",
+      "gender": "男",
+      "age": 57,
+      "nation": "中国",
+      "occupation": "内阁首辅",
+      "temperament": "刚毅",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720203847-dbp4s.jpg"
+    },
+    {
+      "id": "asset-20260804202830-f4689",
+      "gender": "男",
+      "age": 53,
+      "nation": "中国",
+      "occupation": "内阁首辅",
+      "temperament": "土气",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202830-f4689.jpg"
+    },
+    {
+      "id": "asset-20260720203917-pkk5x",
+      "gender": "男",
+      "age": 34,
+      "nation": "中国",
+      "occupation": "镖局总镖头",
+      "temperament": "正义",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720203917-pkk5x.jpg"
+    },
+    {
+      "id": "asset-20260720205729-l4dfh",
+      "gender": "男",
+      "age": 25,
+      "nation": "中国",
+      "occupation": "镇远镖局总镖头",
+      "temperament": "飒爽",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720205729-l4dfh.jpg"
+    },
+    {
+      "id": "asset-20260804202327-499jv",
+      "gender": "男",
+      "age": 37,
+      "nation": "中国",
+      "occupation": "丹道方士",
+      "temperament": "混日子",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260804202327-499jv.jpg"
+    },
+    {
+      "id": "asset-20260720212440-m8wzj",
+      "gender": "男",
+      "age": 21,
+      "nation": "中国",
+      "occupation": "嵩阳书院山长",
+      "temperament": "勇敢",
+      "ancient": true,
+      "group": "t1",
+      "img": "/avatars/asset-20260720212440-m8wzj.jpg"
+    },
+    {
+      "id": "asset-20260720212146-p2cjt",
+      "gender": "男",
+      "age": 33,
+      "nation": "中国",
+      "occupation": "巡按御史",
+      "temperament": "儒雅",
+      "ancient": true,
+      "group": "t1",
+      "img": "/avatars/asset-20260720212146-p2cjt.jpg"
+    },
+    {
+      "id": "asset-20260720211907-jw8mc",
+      "gender": "男",
+      "age": 38,
+      "nation": "中国",
+      "occupation": "镖局总镖头",
+      "temperament": "坚毅",
+      "ancient": true,
+      "group": "t2",
+      "img": "/avatars/asset-20260720211907-jw8mc.jpg"
     }
   ],
-  "pick": "auto → 取首条 ancient=true 且 roles 匹配诗句关键字者；无匹配则按 poemId hash 稳定取一个 ancient 形象（整诗统一）",
-  "poets": {
-    "李白": {
-      "main": "asset-20260804202323-67p4m",
-      "supports": [
-        "asset-20260804202316-ptkqg",
-        "asset-20260804202251-7gnd4",
-        "asset-20260804202225-m9mx9"
-      ],
-      "style": "豪放飘逸 · 少年行"
-    },
-    "杜甫": {
-      "main": "asset-20260804202358-tvzdp",
-      "supports": [
-        "asset-20260804202445-vc5tw",
-        "asset-20260804202435-cf77p",
-        "asset-20260804202251-7gnd4"
-      ],
-      "style": "沉郁顿挫 · 士人"
-    },
-    "苏轼": {
-      "main": "asset-20260804202435-cf77p",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202241-qx4x7",
-        "asset-20260804202225-m9mx9"
-      ],
-      "style": "旷达清雄"
-    },
-    "白居易": {
-      "main": "asset-20260804202358-tvzdp",
-      "supports": [
-        "asset-20260804202435-cf77p",
-        "asset-20260804202445-vc5tw",
-        "asset-20260804202323-67p4m"
-      ],
-      "style": "平易流转"
-    },
-    "梅尧臣": {
-      "main": "asset-20260804202435-cf77p",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202323-67p4m"
-      ],
-      "style": "古淡平实"
-    },
-    "王安石": {
-      "main": "asset-20260804202251-7gnd4",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202435-cf77p"
-      ],
-      "style": "拗峭峻洁"
-    },
-    "辛弃疾": {
-      "main": "asset-20260804202251-7gnd4",
-      "supports": [
-        "asset-20260804202316-ptkqg",
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202241-qx4x7"
-      ],
-      "style": "豪放悲壮"
-    },
-    "陆游": {
-      "main": "asset-20260804202251-7gnd4",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202435-cf77p"
-      ],
-      "style": "慷慨激昂"
-    },
-    "黄庭坚": {
-      "main": "asset-20260804202323-67p4m",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202225-m9mx9"
-      ],
-      "style": "生新瘦硬"
-    },
-    "李商隐": {
-      "main": "asset-20260804202323-67p4m",
-      "supports": [
-        "asset-20260804202225-m9mx9",
-        "asset-20260804202358-tvzdp"
-      ],
-      "style": "深情绵邈"
-    },
-    "王维": {
-      "main": "asset-20260804202323-67p4m",
-      "supports": [
-        "asset-20260804202445-vc5tw",
-        "asset-20260804202435-cf77p"
-      ],
-      "style": "空灵山水"
-    },
-    "欧阳修": {
-      "main": "asset-20260804202358-tvzdp",
-      "supports": [
-        "asset-20260804202435-cf77p",
-        "asset-20260804202323-67p4m"
-      ],
-      "style": "疏隽深婉"
-    },
-    "朱熹": {
-      "main": "asset-20260804202358-tvzdp",
-      "supports": [
-        "asset-20260804202323-67p4m",
-        "asset-20260804202435-cf77p"
-      ],
-      "style": "理学理趣"
-    },
-    "文天祥": {
-      "main": "asset-20260804202251-7gnd4",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202316-ptkqg"
-      ],
-      "style": "正气凛然"
-    },
-    "范成大": {
-      "main": "asset-20260804202435-cf77p",
-      "supports": [
-        "asset-20260804202358-tvzdp",
-        "asset-20260804202323-67p4m"
-      ],
-      "style": "田园平实"
-    },
-    "李清照": {
-      "main": "asset-20260804202235-d2ks4",
-      "supports": [
-        "asset-20260804202300-dfnsm",
-        "asset-20260804202301-blfxj",
-        "asset-20260804202404-mzn8z"
-      ],
-      "style": "婉约清照",
-      "gender": "女"
-    }
-  },
-  "_poet_rule": "整诗固定使用该诗人的 main 形象（避免多张脸）；supports 为备选/多版本；未收录诗人回退古风池按 poemId hash"
+  "_t1order": [
+    "李白",
+    "杜甫",
+    "白居易",
+    "王维",
+    "李商隐",
+    "杜牧",
+    "苏轼",
+    "辛弃疾",
+    "陆游",
+    "王安石",
+    "欧阳修",
+    "李清照"
+  ],
+  "tier2FemalePoets": [
+    "李清照",
+    "朱淑真",
+    "鱼玄机",
+    "薛涛",
+    "柳如是",
+    "唐婉",
+    "严蕊",
+    "吴淑姬",
+    "张玉娘",
+    "花蕊夫人",
+    "上官婉儿",
+    "班昭",
+    "蔡文姬",
+    "苏小小"
+  ]
 }

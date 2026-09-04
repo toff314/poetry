@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Film, Loader2, Play, AlertCircle, CheckCircle2, X } from 'lucide-react';
-import { startVideoTask, getVideoTask, getPoemAvatar } from '../lib/api';
-import type { VideoTask, PoemAvatar } from '../lib/api';
+import { startVideoTask, getVideoTask } from '../lib/api';
+import type { VideoTask } from '../lib/api';
 
 const POLL_MS = 5000;
 
@@ -14,7 +14,6 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
   const [task, setTask] = useState<VideoTask | null>(null);
   const [starting, setStarting] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
-  const [cast, setCast] = useState<PoemAvatar | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const poemRef = useRef(poemId);
   poemRef.current = poemId;
@@ -39,11 +38,7 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
   useEffect(() => {
     return stopPoll;
   }, [stopPoll]);
-  useEffect(() => {
-    let disposed = false;
-    getPoemAvatar(poemRef.current).then((res) => { if (!disposed) setCast(res?.data || null); }).catch(() => {});
-    return () => { disposed = true; };
-  }, [poemId]);
+
 
 
   const start = async () => {
@@ -118,15 +113,7 @@ export default function VideoPanel({ poemId }: { poemId: string }) {
             </p>
           )}
 
-          {cast && (cast.main || (cast.supports || []).length > 0) && (
-            <p className="text-[11px] text-silver/85 leading-relaxed mb-2 border border-darkline/60 rounded-lg px-2.5 py-1.5">
-              {cast.author && <span className="text-paper/80">{cast.author} · </span>}
-              出演：<span className="text-gold">{cast.main?.occupation || '默认形象'}{cast.main?.age ? `（${cast.main.age}岁${cast.main.gender ? ' ' + cast.main.gender : ''}${cast.main.temperament ? ' · ' + cast.main.temperament : ''}）` : ''}</span>
-              {(cast.supports || []).length > 0 && (
-                <span className="text-silver/70"> · 备选：{cast.supports.map((x) => x.occupation || '形象').join('、')}</span>
-              )}
-            </p>
-          )}
+
           {actionMsg && <p className="text-xs text-gold/90 mb-2 leading-relaxed">{actionMsg}</p>}
           {task?.error && (
             <p className="text-xs text-red-400 mb-2 flex items-start gap-1.5 leading-relaxed">

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Sparkles, BookOpen, Shuffle, ArrowRight, Play, RefreshCw, Dices, LibraryBig } from 'lucide-react';
-import { getRandomPoem, getGeneratedIndex, getPoets } from '../lib/api';
+import { getRandomPoem, getGeneratedIndex, getPoets, getPoetAvatars } from '../lib/api';
+import type { PoetAvatarBrief } from '../lib/api';
 import type { GeneratedSummary } from '../lib/api';
 import type { Poem, Poet } from '../types';
 
@@ -37,6 +38,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [generated, setGenerated] = useState<GeneratedSummary[]>([]);
   const [poets, setPoets] = useState<Poet[]>([]);
+  const [avatarList, setAvatarList] = useState<PoetAvatarBrief[]>([]);
   const [bgIndex, setBgIndex] = useState(0);
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState('');
@@ -86,6 +88,9 @@ export default function Home() {
     getGeneratedIndex()
       .then((res) => setGenerated(res?.poems || []))
       .catch(() => setGenerated([]));
+    getPoetAvatars()
+      .then((res) => setAvatarList(res?.data?.poets || []))
+      .catch(() => {});
     getPoets()
       .then((res) => {
         const list = res?.data?.poets || [];
@@ -354,14 +359,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ ④ 诗人走廊 ============ */}
+      {/* ============ ④ 走进诗人 ============ */}
       {poets.length > 0 && (
         <section className="py-24 px-6 lg:px-10 bg-ink">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
-                <p className="text-xs tracking-[0.3em] text-gold uppercase mb-3">Poets</p>
+                <p className="text-xs tracking-[0.3em] text-gold uppercase mb-3">Poets · 虚拟形象演绎</p>
                 <h2 className="font-serif text-3xl md:text-4xl text-paper">走进诗人</h2>
+                <p className="text-silver/80 text-sm mt-2">每位重要诗人均有专属虚拟形象出演，一首诗始终同一位形象。</p>
               </div>
               <Link to="/library" className="hidden md:flex items-center gap-2 text-sm text-silver hover:text-gold transition-colors">
                 查看全部
@@ -369,23 +375,52 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x -mx-1 px-1 [scrollbar-width:thin]">
+            {/* 第一排：重要诗人（专属形象图卡） */}
+            {avatarList.length > 0 && (
+              <div className="flex gap-5 overflow-x-auto pb-4 snap-x -mx-1 px-1 [scrollbar-width:thin] mb-2">
+                {avatarList.map((p) => (
+                  <Link
+                    key={p.name}
+                    to={`/library?poet=${encodeURIComponent(p.name)}`}
+                    className="snap-start shrink-0 w-36 group"
+                  >
+                    <div className="relative aspect-[4/5] rounded-xl overflow-hidden border border-darkline bg-ink-light/60 group-hover:border-gold/50 transition-all">
+                      {p.main?.img ? (
+                        <img src={p.main.img} alt={p.name} loading="lazy"
+                             className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2a2218] to-[#3d2c18]">
+                          <span className="font-serif text-4xl text-gold/90">{p.name.charAt(0)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2 px-0.5">
+                      <p className="font-serif text-lg text-paper group-hover:text-gold transition-colors truncate">{p.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* 第二排：其他诗人（字卡） */}
+            <div className="flex gap-4 overflow-x-auto pb-2 snap-x -mx-1 px-1 [scrollbar-width:thin] mt-4">
               {poets
-            .filter((poet) => !['无名氏', '佚名', '不详'].includes(poet.name))
-            .slice(0, 24)
-            .map((poet) => (
-                <Link
-                  key={poet.name}
-                  to={`/library?poet=${encodeURIComponent(poet.name)}`}
-                  className="snap-start shrink-0 w-40 group p-5 rounded-xl border border-darkline bg-ink-light/50 hover:border-gold/40 transition-all"
-                >
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#2a2218] to-[#3d2c18] border border-gold/20 flex items-center justify-center mb-4">
-                    <span className="font-serif text-2xl text-gold/90">{poet.name.charAt(0)}</span>
-                  </div>
-                  <p className="font-serif text-lg text-paper group-hover:text-gold transition-colors truncate">{poet.name}</p>
-                  <p className="text-xs text-silver/70 mt-1.5">{poet.dynasty || '古典诗人'} · {poet.count} 首</p>
-                </Link>
-              ))}
+                .filter((poet) => !avatarList.some((p) => p.name === poet.name))
+                .filter((poet) => !['无名氏', '佚名', '不详'].includes(poet.name))
+                .slice(0, 20)
+                .map((poet) => (
+                  <Link
+                    key={poet.name}
+                    to={`/library?poet=${encodeURIComponent(poet.name)}`}
+                    className="snap-start shrink-0 w-36 group p-4 rounded-xl border border-darkline bg-ink-light/50 hover:border-gold/40 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2a2218] to-[#3d2c18] border border-gold/15 flex items-center justify-center mb-3">
+                      <span className="font-serif text-xl text-gold/80">{poet.name.charAt(0)}</span>
+                    </div>
+                    <p className="font-serif text-base text-paper group-hover:text-gold transition-colors truncate">{poet.name}</p>
+                    <p className="text-[11px] text-silver/60 mt-1">{poet.dynasty || '古典诗人'} · {poet.count} 首</p>
+                  </Link>
+                ))}
             </div>
           </div>
         </section>

@@ -137,22 +137,24 @@ async function main() {
   const gen = JSON.parse(fs.readFileSync(genFile, 'utf-8'));
   if (!gen || !Array.isArray(gen.sections)) return fail('生成包结构不完整');
 
-  // auto：按作者查 poets 映射取主形象（整诗固定一张脸）；未收录诗人回退古风池按 poemId hash
+  // auto：重要诗人→tier1 专属形象；其他诗人→tier2Pool 共用池按作者稳定（两池零交叉，整诗/整作者固定）
   if (avatar === 'auto') {
     const avFile = path.join(ROOT, 'avatars.json');
     let picked = '';
     try {
       const lib = JSON.parse(fs.readFileSync(avFile, 'utf-8'));
       const author = String(gen.author || '');
-      const pm = (lib.poets || {})[author];
-      if (pm && pm.main) {
-        picked = pm.main;
-        console.log(`[avatar-auto] ${author} 主形象: ${picked}`);
+      const t1 = (lib.tier1 || {})[author];
+      const h = (str) => { let x = 0; for (const ch of String(str)) x = (x * 31 + ch.codePointAt(0)) >>> 0; return x; };
+      if (t1 && t1.main) {
+        picked = t1.main;
+        console.log(`[avatar-auto] 重要诗人「${author}」专属形象: ${picked}`);
       } else {
-        const cand = (lib.items || []).filter((i) => i.ancient === true && i.id && !i.placeholder);
-        const h = (str) => { let x = 0; for (const ch of String(str)) x = (x * 31 + ch.codePointAt(0)) >>> 0; return x; };
-        picked = cand.length ? cand[h(rawId) % cand.length].id : 'asset-20260804202330-bps7t';
-        console.log(`[avatar-auto] 未收录诗人「${author || '?'}」，回退池选 ${picked}`);
+        const fp = lib.tier2FemalePoets || [];
+        const isF = fp.includes(author);
+        const pool = (lib.tier2Pool || {})[isF ? 'female' : 'male'] || [];
+        picked = pool.length ? pool[h(author) % pool.length] : 'asset-20260804202330-bps7t';
+        console.log(`[avatar-auto] 其他诗人「${author || '?'}」共用池(${isF ? '女' : '男'})形象: ${picked}`);
       }
     } catch (e) { console.warn('[avatar-auto] 读取形象库失败:', String(e)); }
     avatarUse = picked;

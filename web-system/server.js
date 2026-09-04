@@ -309,6 +309,34 @@ app.post('/api/video/:id', async (req, res) => {
   }
 });
 
+// 诗人形象列表（首页「走进诗人」）：已绑定主形象的诗人 + 角色/图片/风格
+app.get('/api/avatars/poets', (_req, res) => {
+  try {
+    const av = JSON.parse(fs.readFileSync(path.join(__dirname, 'avatars.json'), 'utf-8'));
+    const byId = (id) => (av.items || []).find((i) => i.id === id) || null;
+    const dynastyOf = {};
+    ALL_POETS.forEach((p) => { dynastyOf[p.name] = p.dynasty; });
+    const t1 = av.tier1 || {};
+    const order = av._t1order || Object.keys(t1);
+    const out = order
+      .filter((name) => t1[name])
+      .map((name) => {
+        const pm = t1[name];
+        const m = byId(pm.main);
+        return {
+          name,
+          dynasty: dynastyOf[name] || '',
+          tier: 't1',
+          style: pm.style || '',
+          main: m ? { occupation: m.occupation, age: m.age, gender: m.gender, temperament: m.temperament, img: m.img || '' } : null,
+        };
+      });
+    res.json({ success: true, data: { poets: out, poolSize: ((av.tier2Pool || {}).male || []).length + ((av.tier2Pool || {}).female || []).length } });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 // 诗人出演形象（主 + 备选）：按作者映射，供页面展示与生成选角
 app.get('/api/avatars/:id', (req, res) => {
   try {
@@ -321,19 +349,20 @@ app.get('/api/avatars/:id', (req, res) => {
     const avFile = path.join(__dirname, 'avatars.json');
     const av = JSON.parse(fs.readFileSync(avFile, 'utf-8'));
     const byId = (id) => (av.items || []).find((i) => i.id === id) || null;
-    const pm = (av.poets || {})[author];
+    const h = (s) => { let x = 0; for (const ch of String(s)) x = (x * 31 + ch.codePointAt(0)) >>> 0; return x; };
     let main = null;
-    let supports = [];
-    if (pm && pm.main) {
-      main = byId(pm.main);
-      supports = (pm.supports || []).map(byId).filter(Boolean);
+    let tier = 't2';
+    const t1 = (av.tier1 || {})[author];
+    if (t1 && t1.main) {
+      main = byId(t1.main);
+      tier = 't1';
     } else {
-      const cand = (av.items || []).filter((i) => i.ancient === true && i.id);
-      const h = (s) => { let x = 0; for (const ch of String(s)) x = (x * 31 + ch.codePointAt(0)) >>> 0; return x; };
-      main = byId(cand[h(gid) % cand.length]?.id) || byId('asset-20260804202330-bps7t');
+      const fp = av.tier2FemalePoets || [];
+      const isF = fp.includes(author);
+      const pool = (av.tier2Pool || {})[isF ? 'female' : 'male'] || [];
+      main = byId(pool.length ? pool[h(author || '?') % pool.length] : 'asset-20260804202330-bps7t');
     }
-    if (!supports.length) supports = (av.items || []).filter((i) => i.ancient === true).slice(0, 3).map(byId).filter(Boolean);
-    res.json({ success: true, data: { poemId: gid, author, main, supports } });
+    res.json({ success: true, data: { poemId: gid, author, tier, main } });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

@@ -42,6 +42,7 @@ sync_push() {
   rsync -a "$WS/cover.jpeg" "$MIRROR/cover.jpeg"
   rsync -a "${DATA_EXCLUDES[@]}" "$WS/web-system/data/" "$MIRROR/web-system/data/"
   rsync -a "$WS/web-system/public/generated" "$MIRROR/web-system/public/"
+  rsync -a "$WS/web-system/public/avatars" "$MIRROR/web-system/public/"
   rsync -a "$WS/web-system/public/audio" "$MIRROR/web-system/public/"
   rsync -a "$WS/web-system/public/videos" "$MIRROR/web-system/public/" 2>/dev/null || true
   (cd "$MIRROR" && git add -A) || echo "（提示：镜像尚未纳入 git，跳过 git add）"
@@ -57,6 +58,7 @@ sync_pull() {
   rsync -a "$MIRROR/cover.jpeg" "$WS/cover.jpeg" 2>/dev/null || true
   rsync -a "${DATA_EXCLUDES[@]}" "$MIRROR/web-system/data/" "$WS/web-system/data/"
   rsync -a "$MIRROR/web-system/public/generated/" "$WS/web-system/public/generated/" 2>/dev/null || true
+  rsync -a "$MIRROR/web-system/public/avatars/" "$WS/web-system/public/avatars/" 2>/dev/null || true
   rsync -a "$MIRROR/web-system/public/audio/" "$WS/web-system/public/audio/" 2>/dev/null || true
   rsync -a "$MIRROR/web-system/public/videos/" "$WS/web-system/public/videos/" 2>/dev/null || true
   echo "完成：产物已回灌工作区。提示：pull 不删除工作区多余文件，如需清理由你手动确认。"
