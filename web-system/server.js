@@ -463,9 +463,29 @@ function readTask(taskId) {
   return JSON.parse(fs.readFileSync(f, 'utf-8'));
 }
 
+const DAILY_GEN_LIMIT = Number(process.env.DAILY_GEN_LIMIT || 5);
+
+// 今日成功生成的沉浸页数（data/generated 下非 index json 当日 mtime）
+function countTodayGenerated() {
+  const now = new Date();
+  let files = [];
+  try { files = fs.readdirSync(GENERATED_DIR).filter((f) => f.endsWith('.json') && f !== 'index.json'); } catch { return 0; }
+  let n = 0;
+  for (const f of files) {
+    try {
+      const t = new Date(fs.statSync(path.join(GENERATED_DIR, f)).mtime);
+      if (t.getFullYear() === now.getFullYear() && t.getMonth() === now.getMonth() && t.getDate() === now.getDate()) n += 1;
+    } catch { /* ignore */ }
+  }
+  return n;
+}
+
 app.post('/api/generate-ai/:id', async (req, res) => {
   try {
     const rawId = req.params.id;
+    if (countTodayGenerated() >= DAILY_GEN_LIMIT) {
+      return res.status(429).json({ success: false, code: 'DAILY_QUOTA', error: `今日 AI 沉浸页生成已达上限（${DAILY_GEN_LIMIT} 篇），请明日再来` });
+    }
     const voice = req.body?.voice || 'edge-yunjian';
     const existing = readTask(rawId);
     if (existing && existing.status === 'running') {

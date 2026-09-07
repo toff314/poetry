@@ -19,13 +19,11 @@ function hashIdx(s: string, n: number): number {
   return h % n;
 }
 
-/** 常见朝代展示顺序 */
-const DYNASTY_ORDER = ['唐朝', '宋朝', '五代', '春秋战国', '三国', '清朝'];
 
 export default function Gallery() {
   const [items, setItems] = useState<GeneratedSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dyn, setDyn] = useState('');
+  const [author, setAuthor] = useState('');
   const [viewing, setViewing] = useState<GeneratedSummary | null>(null);
 
   useEffect(() => {
@@ -35,18 +33,11 @@ export default function Gallery() {
       .finally(() => setLoading(false));
   }, []);
 
-  const dynasties = useMemo(() => {
-    const set = new Set(items.map((g) => g.dynasty || '未标注'));
-    const known = DYNASTY_ORDER.filter((d) => set.has(d));
-    const rest = Array.from(set)
-      .filter((d) => !DYNASTY_ORDER.includes(d))
-      .sort();
-    return [...known, ...rest];
-  }, [items]);
+  const authors = useMemo(() => Array.from(new Set(items.map((g) => g.author || '未知'))), [items]);
 
   const shown = useMemo(
-    () => (dyn ? items.filter((g) => (g.dynasty || '未标注') === dyn) : items),
-    [items, dyn]
+    () => (author ? items.filter((g) => (g.author || '未知') === author) : items),
+    [items, author]
   );
 
   return (
@@ -76,26 +67,22 @@ export default function Gallery() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
-        {/* 朝代筛选 */}
-        {dynasties.length > 0 && (
+        {/* 诗人筛选（同诗词库按作者） */}
+        {authors.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-10">
             <button
-              onClick={() => setDyn('')}
-              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
-                dyn === '' ? 'bg-gold text-ink border-gold' : 'border-darkline text-silver hover:border-silver'
-              }`}
+              onClick={() => setAuthor('')}
+              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${author === '' ? 'bg-gold text-ink border-gold' : 'border-darkline text-silver hover:border-silver'}`}
             >
-              全部
+              全部诗人
             </button>
-            {dynasties.map((d) => (
+            {authors.map((a) => (
               <button
-                key={d}
-                onClick={() => setDyn(d === dyn ? '' : d)}
-                className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
-                  dyn === d ? 'bg-gold/15 text-gold border-gold/60' : 'border-darkline text-silver hover:border-silver'
-                }`}
+                key={a}
+                onClick={() => setAuthor(a === author ? '' : a)}
+                className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${author === a ? 'bg-gold/15 text-gold border-gold/60' : 'border-darkline text-silver hover:border-silver'}`}
               >
-                {d}
+                {a}
               </button>
             ))}
           </div>
@@ -109,7 +96,7 @@ export default function Gallery() {
           </div>
         ) : shown.length === 0 ? (
           <div className="text-center py-24 border border-dashed border-darkline rounded-xl">
-            <p className="text-silver mb-2">{dyn ? `「${dyn}」还没有已生成的沉浸页` : '还没有已生成的沉浸页'}</p>
+            <p className="text-silver mb-2">{author ? `「${author}」还没有已生成的沉浸页` : '还没有已生成的沉浸页'}</p>
             <p className="text-xs text-silver/50 mb-6">选一首心仪的诗，用 AI 为它制作画面与朗诵</p>
             <Link
               to="/library"

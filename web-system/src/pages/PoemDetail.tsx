@@ -344,7 +344,11 @@ export default function PoemDetail() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voice: 'edge-yunjian' }),
       });
-      if (!res.ok) throw new Error('启动失败');
+      if (!res.ok) {
+        let msg = '启动失败';
+        try { const e = await res.json(); if (e && e.error) msg = e.error; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
       const t = await res.json();
       const taskId = t.taskId || id;
       // 轮询任务（最长约 12 分钟）
@@ -373,7 +377,7 @@ export default function PoemDetail() {
       setGenInfo(null);
       setGenerating(false);
     } catch (e) {
-      setGenError('生成请求失败，请重试');
+      setGenError(e instanceof Error && e.message ? e.message : '生成请求失败，请重试');
       setGenInfo(null);
       setGenerating(false);
     }

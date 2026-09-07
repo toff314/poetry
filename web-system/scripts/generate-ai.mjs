@@ -270,6 +270,10 @@ setStage('images', 12, `开始 AI 生图（${IMAGE_ENGINE === 'ark' ? 'Ark Seedr
 for (let i = 0; i < imgTasks.length; i++) {
   const t = imgTasks[i];
   const out = path.join(genDir, `${t.name}.jpg`);
+  if (fs.existsSync(out) && fs.statSync(out).size > 0) {
+    console.log(`[reuse-image] ${t.name} 已存在，跳过生成`);
+    continue;
+  }
   setStage('images', 12 + Math.round((i / imgTasks.length) * 58), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
   if (IMAGE_ENGINE === 'ark') runArkImage(buildPrompt(t.hint), out);
   else runDoubaoImage(buildPrompt(t.hint), out);

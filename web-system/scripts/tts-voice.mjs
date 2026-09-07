@@ -128,10 +128,23 @@ async function tencentTTS(text, voice, output, opts = {}) {
 }
 
 // ── Edge-TTS（备选引擎） ─────────────────────────────────────────────
+function resolveEdgeConverter() {
+  const cands = [];
+  if (process.env.EDGE_TTS_CONVERTER) cands.push(process.env.EDGE_TTS_CONVERTER);
+  cands.push(path.join(__dirname, 'vendor', 'tts-converter.js'));
+  try {
+    const tops = fs.readdirSync('/tmp').filter((d) => d.startsWith('qagent_skills_')).sort();
+    for (const t of tops) cands.push(path.join('/tmp', t, 'speech-synthesis', 'scripts', 'tts-converter.js'));
+  } catch { /* ignore */ }
+  for (const c of cands) {
+    try { if (fs.existsSync(c)) return c; } catch { /* ignore */ }
+  }
+  return '';
+}
+
 async function edgeTTS(text, voice, rate, output) {
-  const skillDir = '/tmp/qagent_skills_da2e5e07276bbc6a_a0dd8ab3_607046/speech-synthesis/scripts';
-  const conv = path.join(skillDir, 'tts-converter.js');
-  if (!fs.existsSync(conv)) throw new Error('Edge-TTS 技能脚本不存在: ' + conv);
+  const conv = resolveEdgeConverter();
+  if (!conv) throw new Error('Edge-TTS 技能脚本不存在（可设置 EDGE_TTS_CONVERTER 指定 converter 路径）');
   const r = spawnSync('node', [conv, text, '--voice', voice, '--rate', rate, '--output', output], {
     encoding: 'utf-8',
     timeout: 300000,

@@ -49,7 +49,7 @@ export default function Home() {
 
   const artPages = useMemo(() => generated.filter((g) => g.hasArt && g.cover), [generated]);
   const heroBgPool = useMemo(() => artPages.map((g) => g.cover as string), [artPages]);
-  const featured = artPages;
+  const featured = artPages.slice(0, 8); // 首页 AI 沉浸区最多 8 部 + 引导卡 = 3 行（每行 3 张），更多去沉浸画廊
 
   async function drawRandomPoem() {
     const res = await getRandomPoem();
