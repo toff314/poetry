@@ -1,3 +1,4 @@
+import SiteFooter from '../components/SiteFooter';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Layers } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function Topics() {
 
   return (
     <div className="min-h-screen bg-ink pb-24">
-      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]">
+      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]" style={{ backgroundImage: `linear-gradient(180deg, rgba(10,10,11,0.93) 0%, rgba(10,10,11,0.72) 40%, rgba(10,10,11,0.9) 80%, #0a0a0b 100%), url(/assets/bg/topics.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="max-w-7xl mx-auto">
           <p className="text-xs tracking-[0.3em] text-gold uppercase mb-4">
             <span className="inline-flex items-center gap-1.5"><Layers size={12} /> Topics · 专题</span>
@@ -66,6 +67,7 @@ export default function Topics() {
           ))
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }

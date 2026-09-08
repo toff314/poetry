@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Loader2, Sparkles, Play, Pause, RotateCcw, Square, Volume2,
   Music, Music2, SkipBack, SkipForward,
 } from 'lucide-react';
-import { getGeneratedPoem, getPoemById, getRankByDb, rankLabel, type RankInfo } from '../lib/api';
+import { getGeneratedPoem, getPoemById, getRankByDb, findRankByTitle, rankLabel, type RankInfo } from '../lib/api';
 import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, matchBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
 import DanmakuLayer from '../components/DanmakuLayer';
+import TagPill from '../components/TagPill';
 type ClosingBlock = { head: string; body: string };
 
 function splitClosing(text: string): ClosingBlock[] {
@@ -47,6 +48,7 @@ const SILENT_STEP_MS = 8000;
 
 export default function PoemDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [poem, setPoem] = useState<GeneratedPoem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -92,13 +94,19 @@ export default function PoemDetail() {
     fetchBgmTracks().then(setBgmTracks).catch(() => setBgmTracks([]));
   }, []);
 
-  // 载入榜单名次（三百首·第 N 位）
+  // 载入榜单名次（三百首·第 N 位；dbId 未命中按题名兜底）
   useEffect(() => {
     if (!id) return;
     let alive = true;
-    getRankByDb(id).then((r) => { if (alive) setRank(r); }).catch(() => { if (alive) setRank(null); });
+    (async () => {
+      let r = null;
+      try { r = await getRankByDb(id); } catch { r = null; }
+      if (!r && poem && poem.author) r = await findRankByTitle(poem.author, poem.title);
+      if (alive) setRank(r);
+    })();
     return () => { alive = false; };
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, poem?.author, poem?.title]);
 
   // 诗文变化时重置 BGM
   useEffect(() => {
@@ -392,6 +400,11 @@ export default function PoemDetail() {
     }
   };
 
+  const backToPrev = () => {
+    if (window.history.length > 1) window.history.back();
+    else navigate('/library');
+  };
+
   async function findRawPoem(poemId: string): Promise<{ author: string; title: string; content: string } | null> {
     try {
       const res = await getPoemById(poemId);
@@ -415,13 +428,18 @@ export default function PoemDetail() {
   return (
     <div className="min-h-screen bg-ink flex items-center justify-center px-6 py-24">
       <DanmakuLayer poemId={id || ''} />
-      <div className="max-w-2xl w-full">          <Link to="/library" className="inline-flex items-center gap-2 text-sm text-silver hover:text-gold transition-colors mb-10">
+      <div className="max-w-2xl w-full">          <button onClick={backToPrev} className="inline-flex items-center gap-2 text-sm text-silver hover:text-gold transition-colors mb-10">
             <ArrowLeft size={16} />
-            返回诗词库
-          </Link>
+            返回上一页
+          </button>
           <p className="text-xs tracking-[0.3em] text-gold uppercase mb-4">AI Immersive · 尚未制作</p>
           <h1 className="font-serif text-4xl md:text-5xl text-paper mb-3">{rawPoem?.title || '这首诗'}</h1>
-          {rawPoem?.author && <p className="text-silver mb-8">{rawPoem.author}</p>}
+          {rawPoem?.author && (
+            <div className="flex items-center gap-2 mb-8 flex-wrap">
+              <p className="text-silver">{rawPoem.author}</p>
+              <TagPill dbId={id} author={rawPoem.author} title={rawPoem.title} />
+            </div>
+          )}
           {rawPoem ? (
             <div className="max-h-[46vh] overflow-y-auto pr-2 rounded-xl border border-darkline bg-ink-light/50 p-6 mb-10">
               <p className="font-serif text-lg leading-loose text-paper/90 whitespace-pre-wrap poem-text">{rawPoem.content}</p>

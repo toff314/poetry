@@ -42,6 +42,7 @@ sync_push() {
   rsync -a "$WS/cover.jpeg" "$MIRROR/cover.jpeg"
   rsync -a "${DATA_EXCLUDES[@]}" "$WS/web-system/data/" "$MIRROR/web-system/data/"
   rsync -a "$WS/web-system/public/generated" "$MIRROR/web-system/public/"
+  rsync -a "$WS/web-system/public/assets" "$MIRROR/web-system/public/"
   rsync -a "$WS/web-system/public/avatars" "$MIRROR/web-system/public/"
   rsync -a "$WS/web-system/public/audio" "$MIRROR/web-system/public/"
   rsync -a "$WS/web-system/public/videos" "$MIRROR/web-system/public/" 2>/dev/null || true
@@ -58,6 +59,7 @@ sync_pull() {
   rsync -a "$MIRROR/cover.jpeg" "$WS/cover.jpeg" 2>/dev/null || true
   rsync -a "${DATA_EXCLUDES[@]}" "$MIRROR/web-system/data/" "$WS/web-system/data/"
   rsync -a "$MIRROR/web-system/public/generated/" "$WS/web-system/public/generated/" 2>/dev/null || true
+  rsync -a "$MIRROR/web-system/public/assets/" "$WS/web-system/public/assets/" 2>/dev/null || true
   rsync -a "$MIRROR/web-system/public/avatars/" "$WS/web-system/public/avatars/" 2>/dev/null || true
   rsync -a "$MIRROR/web-system/public/audio/" "$WS/web-system/public/audio/" 2>/dev/null || true
   rsync -a "$MIRROR/web-system/public/videos/" "$WS/web-system/public/videos/" 2>/dev/null || true

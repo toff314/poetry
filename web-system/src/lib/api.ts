@@ -274,3 +274,20 @@ export async function getTopic(id: string): Promise<TopicDetail | null> {
     return null;
   }
 }
+
+/** 按作者+题名查榜单（兼容旧 UUID 场景：题名式匹配） */
+export async function findRankByTitle(author?: string, title?: string): Promise<RankInfo | null> {
+  if (!author || !title) return null;
+  try {
+    const res = await fetch(`/api/rank/find?author=${encodeURIComponent(author)}&title=${encodeURIComponent(title)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** 标签文字（来源 → 展示名） */
+export function tagLabel(source: string): string {
+  return source === 'songci300' ? '宋词三百首' : '唐诗三百首';
+}

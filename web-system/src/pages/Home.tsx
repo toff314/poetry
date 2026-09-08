@@ -1,3 +1,6 @@
+import SiteFooter from '../components/SiteFooter';
+import GenerateModal from '../components/GenerateModal';
+import TagPill from '../components/TagPill';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Sparkles, BookOpen, Shuffle, ArrowRight, Play, RefreshCw, Dices, LibraryBig } from 'lucide-react';
@@ -42,6 +45,7 @@ export default function Home() {
   const [bgIndex, setBgIndex] = useState(0);
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState('');
+  const [genPoem, setGenPoem] = useState<Poem | null>(null);
 
   // 命运卡（今日一诗区块的交互对象）
   const [fate, setFate] = useState<Poem | null>(null);
@@ -58,18 +62,29 @@ export default function Home() {
     return poem;
   }
 
-  // 随机开卷：随机一首 → 已生成直接进入沉浸页；未生成进入生成引导
+  // 已生成 → 直接进沉浸页；未生成 → 弹框原地生成（不跳转不刷新）
+  const resolveScene = (p: Poem): string | null => {
+    const hit = generated.find((g) => g.id === p.id || (g.title === p.title && g.author === p.author));
+    return hit ? hit.id : null;
+  };
+  const openPoem = (p: Poem) => {
+    const sid = resolveScene(p);
+    if (sid) navigate(`/poem/${sid}`);
+    else setGenPoem(p);
+  };
+
+  // 随机开卷：随机一首 → 已生成直接进入；未生成弹框
   const handleRandomOpen = async () => {
     if (opening) return;
     setOpening(true);
     setOpenError('');
     try {
       const poem = await drawRandomPoem();
-      navigate(`/poem/${poem.id}`);
+      openPoem(poem);
     } catch (e) {
       setOpenError('随机取诗失败，请稍后再试');
-      setOpening(false);
     }
+    setOpening(false);
   };
 
   const drawFate = async () => {
@@ -109,7 +124,6 @@ export default function Home() {
   }, [heroBgPool.length]);
 
   const heroHint = featured[0] || null;
-  const fateLine = fate ? firstLine(fate.content) : '';
 
   return (
     <div>
@@ -190,9 +204,9 @@ export default function Home() {
               </div>
             </Link>
           ) : fate ? (
-            <Link to={`/poem/${fate.id}`} className="block hover:border-gold/40">
+            <button type="button" onClick={() => openPoem(fate)} className="block w-full text-left hover:border-gold/40">
               <PoetryCard poem={fate} />
-            </Link>
+            </button>
           ) : (
             <div className="p-6 bg-ink-light/80 backdrop-blur-md border border-darkline rounded-xl">
               <p className="text-silver">正在开卷...</p>
@@ -245,7 +259,10 @@ export default function Home() {
                       <div className="flex items-end justify-between gap-3">
                         <div>
                           <h3 className="font-serif text-2xl text-paper group-hover:text-gold transition-colors">{g.title}</h3>
-                          <p className="text-sm text-paper/70 mt-1">{g.author}</p>
+                          <div className="flex items-center gap-2 flex-wrap mt-1">
+                            <p className="text-sm text-paper/70">{g.author}</p>
+                            <TagPill dbId={g.id} author={g.author} title={g.title} />
+                          </div>
                         </div>
                         <span className="inline-flex items-center gap-1.5 text-xs text-gold border border-gold/40 rounded-full px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Play size={12} /> 进入
@@ -326,19 +343,20 @@ export default function Home() {
                   <div className="px-8 pt-8 pb-6 border-b border-white/5">
                     <p className="text-[10px] tracking-[0.3em] text-gold uppercase mb-4">Fate Card · 命运卡</p>
                     <h3 className="font-serif text-3xl text-paper leading-snug">{displayTitle(fate)}</h3>
-                    <p className="text-sm text-silver mt-2">{fate.author} {fate.dynasty ? `· ${fate.dynasty}` : ''}</p>
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                      <p className="text-sm text-silver">{fate.author} {fate.dynasty ? `· ${fate.dynasty}` : ''}</p>
+                      <TagPill dbId={fate.id} author={fate.author} title={fate.title} />
+                    </div>
                   </div>
-                  <div className="px-8 py-7 min-h-[150px] flex flex-col justify-center">
-                    {fateLine ? (
-                      <p className="font-serif text-xl md:text-2xl text-gold/95 leading-relaxed poem-text">{fateLine}</p>
-                    ) : (
-                      <p className="text-silver text-sm leading-relaxed line-clamp-4 poem-text">{fate.content}</p>
-                    )}
-                    <p className="mt-4 text-xs text-silver/60">滚动阅读全诗 · 或换一张卡</p>
+                  <div className="px-8 py-7">
+                    <div className="max-h-[36vh] overflow-y-auto pr-2 font-serif text-lg md:text-xl text-paper/95 leading-loose poem-text whitespace-pre-wrap">
+                      {fate.content}
+                    </div>
+                    <p className="mt-4 text-xs text-silver/60">上滑阅读全诗 · 或换一张卡</p>
                   </div>
                   <div className="px-8 pb-8 flex flex-wrap gap-3">
                     <button
-                      onClick={() => navigate(`/poem/${fate.id}`)}
+                      onClick={() => openPoem(fate)}
                       className="inline-flex items-center gap-2 bg-gold text-ink px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gold/90 transition-colors"
                     >
                       <Sparkles size={15} />
@@ -426,13 +444,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* ============ 页脚 ============ */}
-      <footer className="py-12 px-6 lg:px-10 border-t border-darkline bg-ink">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="font-serif text-paper">诗境 Poetry Realm</p>
-          <p className="text-xs text-silver">Powered by poetry-cli · doubao-cli AI 生图 · Vite + React</p>
-        </div>
-      </footer>
+      {genPoem && <GenerateModal poem={genPoem} onClose={() => setGenPoem(null)} />}
+      <SiteFooter />
     </div>
   );
 }

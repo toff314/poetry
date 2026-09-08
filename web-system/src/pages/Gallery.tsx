@@ -1,7 +1,9 @@
+import SiteFooter from '../components/SiteFooter';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Play, ArrowRight, Calendar, BookOpen } from 'lucide-react';
 import { getGeneratedIndex, getRankings, rankLabel, type RankInfo } from '../lib/api';
+import TagPill from '../components/TagPill';
 import type { GeneratedSummary } from '../lib/api';
 import ViewPoemModal from '../components/ViewPoemModal';
 
@@ -45,7 +47,7 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-ink pb-24">
       {/* Hero */}
-      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]">
+      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]" style={{ backgroundImage: `linear-gradient(180deg, rgba(10,10,11,0.93) 0%, rgba(10,10,11,0.72) 40%, rgba(10,10,11,0.9) 80%, #0a0a0b 100%), url(/assets/bg/gallery.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="max-w-7xl mx-auto">
           <p className="text-xs tracking-[0.3em] text-gold uppercase mb-4">AI Immersive Worlds</p>
           <h1 className="font-serif text-4xl md:text-5xl text-paper mb-6">沉浸画廊</h1>
@@ -158,6 +160,11 @@ export default function Gallery() {
                         {rankLabel(rk)}
                       </span>
                     )}
+                    {!rk && withArt && (
+                      <span className="absolute top-3 right-4">
+                        <TagPill dbId={g.id} author={g.author} title={g.title} />
+                      </span>
+                    )}
                     {/* 封面态遮罩提示 */}
                     {!withArt && (
                       <span className="absolute top-3 right-4 text-[10px] tracking-wider text-paper/80 bg-black/45 border border-white/15 px-2 py-1 rounded backdrop-blur-sm">
@@ -211,6 +218,7 @@ export default function Gallery() {
         )}
       </div>
       {viewing && <ViewPoemModal poemId={viewing.id} onClose={() => setViewing(null)} />}
+      <SiteFooter />
     </div>
   );
 }

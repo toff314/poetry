@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import SiteFooter from '../components/SiteFooter';
+import TagPill from '../components/TagPill';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, User, Calendar, Sparkles, X, Play, BookOpen } from 'lucide-react';
 import { getPoets, getLibrary, getGeneratedIndex } from '../lib/api';
@@ -112,7 +114,7 @@ export default function Library() {
   return (
     <div className="min-h-screen bg-ink pb-20">
       {/* Hero */}
-      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline">
+      <section className="relative py-24 px-6 lg:px-10 border-b border-darkline" style={{ backgroundImage: `linear-gradient(180deg, rgba(10,10,11,0.93) 0%, rgba(10,10,11,0.72) 40%, rgba(10,10,11,0.9) 80%, #0a0a0b 100%), url(/assets/bg/library.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="max-w-7xl mx-auto">
           <p className="text-xs tracking-[0.3em] text-gold uppercase mb-4">Library</p>
           <h1 className="font-serif text-4xl md:text-5xl text-paper mb-6">诗词库</h1>
@@ -256,7 +258,10 @@ export default function Library() {
                           )}
                         </span>
                       </div>
-                      <p className="text-sm text-silver mb-4">{poem.author}</p>
+                      <div className="flex items-center gap-2 flex-wrap mb-4">
+                        <p className="text-sm text-silver">{poem.author}</p>
+                        <TagPill dbId={poem.id} author={poem.author} title={poem.title} />
+                      </div>
                       <p className="font-serif text-sm text-paper/70 line-clamp-3 poem-text mb-6 flex-1">
                         {poem.content.slice(0, 80)}...
                       </p>
@@ -316,6 +321,7 @@ export default function Library() {
         </div>
       </div>
       {viewPoem && <ViewPoemModal poem={viewPoem} onClose={() => setViewPoem(null)} />}
+      <SiteFooter />
     </div>
   );
 }

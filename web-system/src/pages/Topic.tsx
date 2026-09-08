@@ -1,3 +1,4 @@
+import SiteFooter from '../components/SiteFooter';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, CheckCircle2 } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function Topic() {
   return (
     <div className="min-h-screen bg-ink pb-28">
       {/* Hero */}
-      <section className="relative pt-24 pb-10 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]">
+      <section className="relative pt-24 pb-10 px-6 lg:px-10 border-b border-darkline bg-[radial-gradient(ellipse_at_top,rgba(139,90,43,0.16),transparent_60%)]" style={{ backgroundImage: `linear-gradient(180deg, rgba(10,10,11,0.93) 0%, rgba(10,10,11,0.72) 40%, rgba(10,10,11,0.9) 80%, #0a0a0b 100%), url(/assets/bg/topics.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="max-w-7xl mx-auto">
           <Link to="/topics" className="inline-flex items-center gap-1.5 text-sm text-silver hover:text-gold transition-colors mb-6">
             <ArrowLeft size={15} />
@@ -115,6 +116,7 @@ export default function Topic() {
           </ul>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }
