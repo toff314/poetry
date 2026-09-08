@@ -50,6 +50,7 @@ export default function Home() {
   // 命运卡（今日一诗区块的交互对象）
   const [fate, setFate] = useState<Poem | null>(null);
   const [fateLoading, setFateLoading] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const artPages = useMemo(() => generated.filter((g) => g.hasArt && g.cover), [generated]);
   const heroBgPool = useMemo(() => artPages.map((g) => g.cover as string), [artPages]);
@@ -99,6 +100,21 @@ export default function Home() {
     }
   };
 
+  // 换一首（翻页：旧卡向左翻走拿掉，新卡自下方翻上）
+  const swapFate = async () => {
+    if (fateLoading || leaving) return;
+    setLeaving(true);
+    try {
+      const poem = await drawRandomPoem();
+      window.setTimeout(() => {
+        setFate(poem);
+        setLeaving(false);
+      }, 340);
+    } catch {
+      setLeaving(false);
+    }
+  };
+
   useEffect(() => {
     getGeneratedIndex()
       .then((res) => setGenerated(res?.poems || []))
@@ -136,7 +152,7 @@ export default function Home() {
                 key={src}
                 className={`absolute inset-0 transition-opacity duration-1000 ${i === bgIndex ? 'opacity-100' : 'opacity-0'}`}
               >
-                <img src={src} alt="" className="w-full h-full object-cover" />
+                <img src={src} alt="" className={`w-full h-full object-cover ${i === bgIndex ? 'hero-kb' : ''}`} />
                 <div className="absolute inset-0 image-overlay" />
               </div>
             ))
@@ -147,7 +163,7 @@ export default function Home() {
           )}
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl hero-fade-up">
             <p className="text-xs font-medium tracking-[0.3em] text-gold uppercase mb-6">
               AI Immersive Poetry · 沉浸式诗词电影
             </p>
@@ -332,14 +348,17 @@ export default function Home() {
           {/* 命运卡 */}
           <div className="relative">
             <div className="absolute -inset-3 rounded-3xl opacity-60 pointer-events-none" style={{ background: 'radial-gradient(60% 60% at 70% 30%, rgba(200,160,90,0.12), transparent)' }} />
-            <div className="relative rounded-2xl border border-gold/20 bg-ink-light/80 backdrop-blur-md overflow-hidden">
+            <div className="relative" style={{ perspective: '1400px' }}>
+              <div className="fate-pad fate-pad-3" aria-hidden="true" />
+              <div className="fate-pad fate-pad-2" aria-hidden="true" />
+              <div className="relative z-[2] rounded-2xl border border-gold/25 bg-ink-light/85 backdrop-blur-md shadow-2xl">
               {fateLoading || !fate ? (
                 <div className="aspect-[4/3] flex flex-col items-center justify-center gap-4 p-10 text-center">
                   <div className="w-10 h-10 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
                   <p className="text-silver text-sm">正在翻开命运卡…</p>
                 </div>
               ) : (
-                <div key={fate.id} className="animate-fade-in">
+                <div key={fate.id} className={leaving ? 'fate-out-right' : undefined}>
                   <div className="px-8 pt-8 pb-6 border-b border-white/5">
                     <p className="text-[10px] tracking-[0.3em] text-gold uppercase mb-4">Fate Card · 命运卡</p>
                     <h3 className="font-serif text-3xl text-paper leading-snug">{displayTitle(fate)}</h3>
@@ -363,15 +382,17 @@ export default function Home() {
                       打开 / 生成这页
                     </button>
                     <button
-                      onClick={drawFate}
-                      className="inline-flex items-center gap-2 border border-darkline text-silver px-5 py-2.5 rounded-lg text-sm hover:border-silver transition-colors"
+                      onClick={swapFate}
+                      disabled={fateLoading || leaving}
+                      className="inline-flex items-center gap-2 border border-darkline text-silver px-5 py-2.5 rounded-lg text-sm hover:border-silver transition-colors disabled:opacity-50 disabled:cursor-wait"
                     >
-                      <Shuffle size={15} />
+                      {leaving ? <RefreshCw size={15} className="animate-spin" /> : <Shuffle size={15} />}
                       换一首
                     </button>
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>

@@ -111,20 +111,21 @@ export default function Gallery() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shown.map((g) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+            {shown.map((g, idx) => {
               const withArt = g.hasArt && g.cover;
               const [c1, c2] = PALETTES[hashIdx(g.id, PALETTES.length)];
               const rk = rankMap[g.id];
+              const feature = idx % 3 === 0;
               return (
                 <div
                   key={g.id}
-                  className="group relative flex flex-col overflow-hidden rounded-xl border border-darkline hover:border-gold/40 transition-all bg-ink-light"
+                  className={`group relative flex flex-col overflow-hidden rounded-xl border border-darkline hover:border-gold/40 transition-all bg-ink-light ${feature ? 'md:col-span-2' : 'aspect-[16/11] md:aspect-auto md:min-h-[380px]'}`}
                 >
                   <Link
                     to={`/poem/${g.id}`}
                     aria-label={`进入《${g.title}》沉浸阅读`}
-                    className="block relative aspect-[16/10] overflow-hidden"
+                    className={`block relative overflow-hidden ${feature ? 'aspect-[21/10]' : 'flex-1 min-h-0'}`}
                   >
                     {withArt ? (
                       <img
@@ -147,6 +148,12 @@ export default function Gallery() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                    {/* 悬浮圆形播放钮（影院式 in-image 控制） */}
+                    <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="w-11 h-11 rounded-full inline-flex items-center justify-center text-paper bg-paper/15 backdrop-blur-md border border-white/25 opacity-0 translate-y-1 scale-95 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-200">
+                        <Play size={15} fill="currentColor" />
+                      </span>
+                    </span>
                     {/* 朝代角标 */}
                     {g.dynasty && (
                       <span className="absolute top-3 left-4 inline-flex items-center gap-1 text-[10px] tracking-wider text-paper/90 bg-black/45 border border-white/15 px-2 py-1 rounded backdrop-blur-sm">

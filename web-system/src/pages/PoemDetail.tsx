@@ -508,7 +508,7 @@ export default function PoemDetail() {
             key={src + i}
             src={src}
             alt=""
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === activeIndex ? 'opacity-100 hero-kb' : 'opacity-0'}`}
           />
         ))}
         <div className="absolute inset-0 image-overlay" />
