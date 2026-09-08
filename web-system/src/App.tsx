@@ -6,6 +6,8 @@ import Library from './pages/Library';
 import PoemDetail from './pages/PoemDetail';
 import FontSwitcher from './components/FontSwitcher';
 import Gallery from './pages/Gallery';
+import Topics from './pages/Topics';
+import Topic from './pages/Topic';
 
 // SPA 路由变化时向 Umami 上报 pageview（script.js 首次加载会自行上报初始页）
 function RouteTracker() {
@@ -26,6 +28,7 @@ function Nav() {
     { to: '/', label: '首页' },
     { to: '/library', label: '诗词库' },
     { to: '/gallery', label: '沉浸画廊' },
+    { to: '/topics', label: '专题' },
   ];
 
   return (
@@ -75,6 +78,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/library" element={<Library />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/topics" element={<Topics />} />
+          <Route path="/topic/:tag" element={<Topic />} />
           <Route path="/poem/:id" element={<PoemDetail />} />
         </Routes>
       </main>

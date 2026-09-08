@@ -4,7 +4,7 @@ import {
   ArrowLeft, Loader2, Sparkles, Play, Pause, RotateCcw, Square, Volume2,
   Music, Music2, SkipBack, SkipForward,
 } from 'lucide-react';
-import { getGeneratedPoem, getPoemById } from '../lib/api';
+import { getGeneratedPoem, getPoemById, getRankByDb, rankLabel, type RankInfo } from '../lib/api';
 import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, matchBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
@@ -53,6 +53,7 @@ export default function PoemDetail() {
   const [generating, setGenerating] = useState(false);
   const [genInfo, setGenInfo] = useState<{ progress: number; detail: string } | null>(null);
   const [genError, setGenError] = useState('');
+  const [rank, setRank] = useState<RankInfo | null>(null);
   const [rawPoem, setRawPoem] = useState<{ author: string; title: string; content: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [mode, setMode] = useState<PlayMode>('idle');
@@ -90,6 +91,14 @@ export default function PoemDetail() {
   useEffect(() => {
     fetchBgmTracks().then(setBgmTracks).catch(() => setBgmTracks([]));
   }, []);
+
+  // 载入榜单名次（三百首·第 N 位）
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    getRankByDb(id).then((r) => { if (alive) setRank(r); }).catch(() => { if (alive) setRank(null); });
+    return () => { alive = false; };
+  }, [id]);
 
   // 诗文变化时重置 BGM
   useEffect(() => {
@@ -586,6 +595,11 @@ export default function PoemDetail() {
               {poem.title}
             </h1>
             <p className="text-xl text-paper/80 mb-2">{poem.author} · {poem.dynasty}</p>
+            {rank && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-gold border border-gold/40 rounded-full px-3 py-1 mb-4 bg-black/30 backdrop-blur-sm">
+                {rankLabel(rank)}
+              </span>
+            )}
             <blockquote className="mt-8 pl-6 border-l-2 border-gold font-serif text-2xl md:text-3xl text-gold leading-relaxed">
               {poem.definingLine}
             </blockquote>

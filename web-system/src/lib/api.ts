@@ -188,3 +188,89 @@ export interface PoetAvatarBrief {
 export async function getPoetAvatars(): Promise<{ data: { poets: PoetAvatarBrief[] } }> {
   return fetchJson('/avatars/poets');
 }
+
+// ── 经典三百首榜单（知名度） ──────────────────────────────────────
+export interface RankInfo {
+  rank: number;      // 全局榜序（唐诗 1..320，宋词 1000+）
+  source: string;    // tangshi300 | songci300
+  no?: number;       // 榜内原序号（徽章显示用）
+  title?: string;
+  status?: string;
+}
+
+/** 榜单内序号（no 优先，缺省回退 rank） */
+export function rankLocal(info: Pick<RankInfo, 'rank' | 'source' | 'no'>): number {
+  return info.no ?? (info.source === 'songci300' ? info.rank - 320 : info.rank);
+}
+
+export function rankLabel(info: Pick<RankInfo, 'rank' | 'source' | 'no'>): string {
+  const n = rankLocal(info);
+  return `${info.source === 'songci300' ? '宋词三百首' : '唐诗三百首'} · 第 ${n} 位`;
+}
+
+export async function getRankByDb(dbId: string): Promise<RankInfo | null> {
+  try {
+    const res = await fetch(`/api/rank/${encodeURIComponent(dbId)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function getRankings(): Promise<Record<string, RankInfo>> {
+  try {
+    const res = await fetch('/api/rankings');
+    if (!res.ok) return {};
+    const data = await res.json();
+    const map: Record<string, RankInfo> = {};
+    for (const it of data.items || []) map[String(it.dbId)] = it;
+    return map;
+  } catch {
+    return {};
+  }
+}
+// ── 专题（标签体系，可扩展） ──────────────────────────────────────
+export interface TopicMeta {
+  id: string;
+  name: string;
+  short?: string;
+  kind?: string;
+  desc?: string;
+  count?: number;   // 收录篇数
+  done?: number;    // 已生成沉浸页数
+}
+export interface TopicItem {
+  no: number;
+  dbId: string;
+  title: string;
+  author: string;
+  done: boolean;
+}
+export interface TopicDetail {
+  tag: TopicMeta;
+  total: number;
+  doneCount: number;
+  items: TopicItem[];
+}
+
+export async function getTopics(): Promise<TopicMeta[]> {
+  try {
+    const res = await fetch('/api/topics');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getTopic(id: string): Promise<TopicDetail | null> {
+  try {
+    const res = await fetch(`/api/topic/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Play, ArrowRight, Calendar, BookOpen } from 'lucide-react';
-import { getGeneratedIndex } from '../lib/api';
+import { getGeneratedIndex, getRankings, rankLabel, type RankInfo } from '../lib/api';
 import type { GeneratedSummary } from '../lib/api';
 import ViewPoemModal from '../components/ViewPoemModal';
 
@@ -25,12 +25,14 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [author, setAuthor] = useState('');
   const [viewing, setViewing] = useState<GeneratedSummary | null>(null);
+  const [rankMap, setRankMap] = useState<Record<string, RankInfo>>({});
 
   useEffect(() => {
     getGeneratedIndex()
       .then((res) => setItems(res?.poems || []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
+    getRankings().then(setRankMap).catch(() => setRankMap({}));
   }, []);
 
   const authors = useMemo(() => Array.from(new Set(items.map((g) => g.author || '未知'))), [items]);
@@ -111,6 +113,7 @@ export default function Gallery() {
             {shown.map((g) => {
               const withArt = g.hasArt && g.cover;
               const [c1, c2] = PALETTES[hashIdx(g.id, PALETTES.length)];
+              const rk = rankMap[g.id];
               return (
                 <div
                   key={g.id}
@@ -147,6 +150,12 @@ export default function Gallery() {
                       <span className="absolute top-3 left-4 inline-flex items-center gap-1 text-[10px] tracking-wider text-paper/90 bg-black/45 border border-white/15 px-2 py-1 rounded backdrop-blur-sm">
                         <Calendar size={10} />
                         {g.dynasty}
+                      </span>
+                    )}
+                    {/* 三百首榜位徽章（有封面时） */}
+                    {rk && withArt && (
+                      <span className="absolute top-3 right-4 inline-flex items-center gap-1 text-[10px] tracking-wider text-gold bg-black/45 border border-gold/35 px-2 py-1 rounded backdrop-blur-sm">
+                        {rankLabel(rk)}
                       </span>
                     )}
                     {/* 封面态遮罩提示 */}

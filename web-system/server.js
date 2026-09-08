@@ -531,6 +531,65 @@ app.get('/api/generate-ai/:id', (req, res) => {
   }
 });
 
+// ── 经典三百首榜单（知名度） ─────────────────────────────────────
+const RANKING_DB = path.join(__dirname, 'data', 'ranking.db');
+let rdb = null;
+try { rdb = new DatabaseSync(RANKING_DB, { readOnly: true }); } catch { rdb = null; }
+
+app.get('/api/rankings', (_req, res) => {
+  try {
+    if (!rdb) return res.json({ items: [] });
+    const rows = rdb.prepare('SELECT rank, source_no, db_id, source, title, author, status FROM ranking ORDER BY rank').all();
+    res.json({
+      items: rows.map((r) => ({
+        rank: r.rank, no: r.source_no, dbId: String(r.db_id), source: r.source, title: r.title, author: r.author, status: r.status,
+      })),
+    });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+app.get('/api/rank/:dbId', (req, res) => {
+  try {
+    if (!rdb) return res.status(404).json({ error: 'no ranking' });
+    const r = rdb.prepare('SELECT rank, source_no, source, title FROM ranking WHERE db_id = ?').get(String(req.params.dbId));
+    if (!r) return res.status(404).json({ error: 'no rank' });
+    res.json({ rank: r.rank, no: r.source_no, source: r.source, title: r.title });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+// ── 专题（标签体系，可扩展） ──────────────────────────────────────
+const TAGS_FILE = path.join(__dirname, 'data', 'tags.json');
+let tagsMeta = [];
+try { tagsMeta = JSON.parse(fs.readFileSync(TAGS_FILE, 'utf-8')); } catch { tagsMeta = []; }
+
+app.get('/api/topics', (_req, res) => {
+  try {
+    const all = rdb ? rdb.prepare('SELECT source, db_id FROM ranking').all() : [];
+    const m = {};
+    for (const r of all) {
+      const d = m[r.source] || (m[r.source] = { count: 0, done: 0 });
+      d.count += 1;
+      if (fs.existsSync(path.join(GENERATED_DIR, `${String(r.db_id)}.json`))) d.done += 1;
+    }
+    const out = tagsMeta.map((t) => ({ id: t.id, name: t.name, short: t.short || '', kind: t.kind || '', desc: t.desc || '', count: m[t.id]?.count || 0, done: m[t.id]?.done || 0 }));
+    res.json({ items: out });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+app.get('/api/topic/:tag', (req, res) => {
+  try {
+    const tag = String(req.params.tag);
+    const meta = tagsMeta.find((t) => t.id === tag);
+    if (!meta) return res.status(404).json({ error: 'no such tag' });
+    const rows = rdb ? rdb.prepare('SELECT source_no, db_id, title, author FROM ranking WHERE source=? ORDER BY source_no').all(tag) : [];
+    const items = rows.map((r) => {
+      const done = fs.existsSync(path.join(GENERATED_DIR, `${String(r.db_id)}.json`));
+      return { no: r.source_no, dbId: String(r.db_id), title: r.title, author: r.author, done };
+    });
+    res.json({ tag: meta, total: items.length, doneCount: items.filter((i) => i.done).length, items });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
 // 静态与 SPA fallback
 // 产物资源（generated/audio/videos）由 public 直接静态服务；dist 承载构建产物与 SPA fallback
 app.use(express.static(path.join(__dirname, 'public')));
