@@ -2,7 +2,7 @@ import SiteFooter from '../components/SiteFooter';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Play, ArrowRight, Calendar, BookOpen } from 'lucide-react';
-import { getGeneratedIndex, getRankings, rankLabel, type RankInfo } from '../lib/api';
+import { getGeneratedIndex, getRankings, tagText, type RankInfo } from '../lib/api';
 import TagPill from '../components/TagPill';
 import type { GeneratedSummary } from '../lib/api';
 import ViewPoemModal from '../components/ViewPoemModal';
@@ -157,7 +157,7 @@ export default function Gallery() {
                     {/* 三百首榜位徽章（有封面时） */}
                     {rk && withArt && (
                       <span className="absolute top-3 right-4 inline-flex items-center gap-1 text-[10px] tracking-wider text-gold bg-black/45 border border-gold/35 px-2 py-1 rounded backdrop-blur-sm">
-                        {rankLabel(rk)}
+                        {tagText(rk)}
                       </span>
                     )}
                     {!rk && withArt && (
@@ -171,15 +171,9 @@ export default function Gallery() {
                         静待补图 · 可阅读
                       </span>
                     )}
-                    <div className="absolute bottom-0 inset-x-0 p-4 flex items-end justify-between gap-2">
-                      <div>
-                        <p className="font-serif text-xl text-paper">{g.title}</p>
-                        <p className="text-xs text-paper/70 mt-1">{g.author}</p>
-                      </div>
-                      <span className="shrink-0 inline-flex items-center gap-1 text-xs text-gold opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play size={13} />
-                        进入沉浸阅读
-                      </span>
+                    <div className="absolute bottom-0 inset-x-0 p-4">
+                      <p className="font-serif text-xl text-paper">{g.title}</p>
+                      <p className="text-xs text-paper/70 mt-1">{g.author}</p>
                     </div>
                   </Link>
                   {/* 底部操作条 */}

@@ -536,13 +536,18 @@ const RANKING_DB = path.join(__dirname, 'data', 'ranking.db');
 let rdb = null;
 try { rdb = new DatabaseSync(RANKING_DB, { readOnly: true }); } catch { rdb = null; }
 
+function parseTags(row) {
+  if (!row || !row.tags) return [];
+  try { return JSON.parse(row.tags); } catch { return []; }
+}
+
 app.get('/api/rankings', (_req, res) => {
   try {
     if (!rdb) return res.json({ items: [] });
-    const rows = rdb.prepare('SELECT rank, source_no, db_id, source, title, author, status FROM ranking ORDER BY rank').all();
+    const rows = rdb.prepare('SELECT rank, source_no, db_id, source, title, author, status, tags FROM ranking ORDER BY rank').all();
     res.json({
       items: rows.map((r) => ({
-        rank: r.rank, no: r.source_no, dbId: String(r.db_id), source: r.source, title: r.title, author: r.author, status: r.status,
+        rank: r.rank, no: r.source_no, dbId: String(r.db_id), source: r.source, title: r.title, author: r.author, status: r.status, tags: parseTags(r),
       })),
     });
   } catch (e) { res.status(500).json({ error: String(e) }); }
@@ -555,23 +560,23 @@ app.get('/api/rank/find', (req, res) => {
     const title = String(req.query.title || '');
     if (!author || !title) return res.status(400).json({ error: 'author & title required' });
     const core = title.replace(/[（(·・].*$/u, '');
-    let r = rdb.prepare('SELECT rank, source_no, source, title FROM ranking WHERE author=? AND instr(title,?)>0 ORDER BY rank LIMIT 1')
+    let r = rdb.prepare('SELECT rank, source_no, source, title, tags FROM ranking WHERE author=? AND instr(title,?)>0 ORDER BY rank LIMIT 1')
       .get(author, core);
     if (!r && author.length >= 2) {
-      r = rdb.prepare('SELECT rank, source_no, source, title FROM ranking WHERE author LIKE ? AND instr(title,?)>0 ORDER BY rank LIMIT 1')
+      r = rdb.prepare('SELECT rank, source_no, source, title, tags FROM ranking WHERE author LIKE ? AND instr(title,?)>0 ORDER BY rank LIMIT 1')
         .get(author.slice(0, 2) + '%', core);
     }
     if (!r) return res.status(404).json({ error: 'no rank' });
-    res.json({ rank: r.rank, no: r.source_no, source: r.source, title: r.title });
+    res.json({ rank: r.rank, no: r.source_no, source: r.source, title: r.title, tags: parseTags(r) });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
 app.get('/api/rank/:dbId', (req, res) => {
   try {
     if (!rdb) return res.status(404).json({ error: 'no ranking' });
-    const r = rdb.prepare('SELECT rank, source_no, source, title FROM ranking WHERE db_id = ?').get(String(req.params.dbId));
+    const r = rdb.prepare('SELECT rank, source_no, source, title, tags FROM ranking WHERE db_id = ?').get(String(req.params.dbId));
     if (!r) return res.status(404).json({ error: 'no rank' });
-    res.json({ rank: r.rank, no: r.source_no, source: r.source, title: r.title });
+    res.json({ rank: r.rank, no: r.source_no, source: r.source, title: r.title, tags: parseTags(r) });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 

@@ -196,6 +196,7 @@ export interface RankInfo {
   no?: number;       // 榜内原序号（徽章显示用）
   title?: string;
   status?: string;
+  tags?: string[];   // 派生标签：选集 + 体裁/体制/风格
 }
 
 /** 榜单内序号（no 优先，缺省回退 rank） */
@@ -290,4 +291,14 @@ export async function findRankByTitle(author?: string, title?: string): Promise<
 /** 标签文字（来源 → 展示名） */
 export function tagLabel(source: string): string {
   return source === 'songci300' ? '宋词三百首' : '唐诗三百首';
+}
+
+/** 完整标签文案：选集 + 体裁/体制/风格（去重），可附榜位 */
+export function tagText(info: Pick<RankInfo, 'source' | 'tags' | 'no'> | null | undefined, withNo = false): string {
+  if (!info) return '';
+  const base = tagLabel(info.source);
+  const extra = (info.tags || []).filter((t) => t !== base);
+  let s = [base, ...extra].join(' · ');
+  if (withNo && info.no != null) s += ` · 第 ${info.no} 位`;
+  return s;
 }

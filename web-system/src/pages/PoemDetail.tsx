@@ -4,7 +4,7 @@ import {
   ArrowLeft, Loader2, Sparkles, Play, Pause, RotateCcw, Square, Volume2,
   Music, Music2, SkipBack, SkipForward,
 } from 'lucide-react';
-import { getGeneratedPoem, getPoemById, getRankByDb, findRankByTitle, rankLabel, type RankInfo } from '../lib/api';
+import { getGeneratedPoem, getPoemById, getRankByDb, findRankByTitle, tagText, type RankInfo } from '../lib/api';
 import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, matchBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
@@ -615,7 +615,7 @@ export default function PoemDetail() {
             <p className="text-xl text-paper/80 mb-2">{poem.author} · {poem.dynasty}</p>
             {rank && (
               <span className="inline-flex items-center gap-1.5 text-[11px] text-gold border border-gold/40 rounded-full px-3 py-1 mb-4 bg-black/30 backdrop-blur-sm">
-                {rankLabel(rank)}
+                {tagText(rank, true)}
               </span>
             )}
             <blockquote className="mt-8 pl-6 border-l-2 border-gold font-serif text-2xl md:text-3xl text-gold leading-relaxed">
