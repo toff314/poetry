@@ -3,7 +3,7 @@ import GenerateModal from '../components/GenerateModal';
 import TagPill from '../components/TagPill';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, Sparkles, BookOpen, Shuffle, ArrowRight, Play, RefreshCw, Dices, LibraryBig } from 'lucide-react';
+import { ChevronDown, Sparkles, BookOpen, ArrowRight, Play, RefreshCw, Dices, LibraryBig } from 'lucide-react';
 import { getRandomPoem, getGeneratedIndex, getPoets, getPoetAvatars } from '../lib/api';
 import type { PoetAvatarBrief } from '../lib/api';
 import type { GeneratedSummary } from '../lib/api';
@@ -50,7 +50,6 @@ export default function Home() {
   // 命运卡（今日一诗区块的交互对象）
   const [fate, setFate] = useState<Poem | null>(null);
   const [fateLoading, setFateLoading] = useState(false);
-  const [leaving, setLeaving] = useState(false);
 
   const artPages = useMemo(() => generated.filter((g) => g.hasArt && g.cover), [generated]);
   const heroBgPool = useMemo(() => artPages.map((g) => g.cover as string), [artPages]);
@@ -100,20 +99,37 @@ export default function Home() {
     }
   };
 
-  // 换一首（翻页：旧卡向左翻走拿掉，新卡自下方翻上）
+  // 下一首：直接替换内容，不做动画（高度固定不抖动）
   const swapFate = async () => {
-    if (fateLoading || leaving) return;
-    setLeaving(true);
+    if (fateLoading || !fate) return;
+    setFateLoading(true);
     try {
-      const poem = await drawRandomPoem();
-      window.setTimeout(() => {
-        setFate(poem);
-        setLeaving(false);
-      }, 340);
-    } catch {
-      setLeaving(false);
+      const p = await drawRandomPoem();
+      if (p) setFate(p);
+    } finally {
+      setFateLoading(false);
     }
   };
+
+  // 一首诗的整页内容（翻页前/后共用）
+  const renderPoemPage = (p: Poem) => (
+    <>
+      <div className="px-7 pt-7 pb-5 border-b border-white/5">
+        <p className="text-[10px] tracking-[0.3em] text-gold uppercase mb-3">Fate Card · 命运卡</p>
+        <h3 className="font-serif text-3xl text-paper leading-snug">{displayTitle(p)}</h3>
+        <div className="flex items-center gap-2 flex-wrap mt-2">
+          <p className="text-sm text-silver">{p.author} {p.dynasty ? `· ${p.dynasty}` : ''}</p>
+          <TagPill dbId={p.id} author={p.author} title={p.title} />
+        </div>
+      </div>
+      <div className="px-7 py-6">
+        <div className="min-h-[34vh] max-h-[34vh] overflow-y-auto pr-2 font-serif text-lg md:text-xl text-paper/95 leading-loose poem-text whitespace-pre-wrap">
+          {p.content}
+        </div>
+        <p className="mt-3 text-xs text-silver/60">上滑阅读全诗 · 点「下一首」翻页</p>
+      </div>
+    </>
+  );
 
   useEffect(() => {
     getGeneratedIndex()
@@ -348,31 +364,16 @@ export default function Home() {
           {/* 命运卡 */}
           <div className="relative">
             <div className="absolute -inset-3 rounded-3xl opacity-60 pointer-events-none" style={{ background: 'radial-gradient(60% 60% at 70% 30%, rgba(200,160,90,0.12), transparent)' }} />
-            <div className="relative" style={{ perspective: '1400px' }}>
-              <div className="fate-pad fate-pad-3" aria-hidden="true" />
-              <div className="fate-pad fate-pad-2" aria-hidden="true" />
-              <div className="relative z-[2] rounded-2xl border border-gold/25 bg-ink-light/85 backdrop-blur-md shadow-2xl">
+            <div className="relative">
+              <div className="rounded-2xl border border-gold/25 bg-ink-light/85 backdrop-blur-md">
               {fateLoading || !fate ? (
                 <div className="aspect-[4/3] flex flex-col items-center justify-center gap-4 p-10 text-center">
                   <div className="w-10 h-10 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
                   <p className="text-silver text-sm">正在翻开命运卡…</p>
                 </div>
               ) : (
-                <div key={fate.id} className={leaving ? 'fate-out-right' : undefined}>
-                  <div className="px-8 pt-8 pb-6 border-b border-white/5">
-                    <p className="text-[10px] tracking-[0.3em] text-gold uppercase mb-4">Fate Card · 命运卡</p>
-                    <h3 className="font-serif text-3xl text-paper leading-snug">{displayTitle(fate)}</h3>
-                    <div className="flex items-center gap-2 flex-wrap mt-2">
-                      <p className="text-sm text-silver">{fate.author} {fate.dynasty ? `· ${fate.dynasty}` : ''}</p>
-                      <TagPill dbId={fate.id} author={fate.author} title={fate.title} />
-                    </div>
-                  </div>
-                  <div className="px-8 py-7">
-                    <div className="max-h-[36vh] overflow-y-auto pr-2 font-serif text-lg md:text-xl text-paper/95 leading-loose poem-text whitespace-pre-wrap">
-                      {fate.content}
-                    </div>
-                    <p className="mt-4 text-xs text-silver/60">上滑阅读全诗 · 或换一张卡</p>
-                  </div>
+                <div>
+                  <div>{renderPoemPage(fate)}</div>
                   <div className="px-8 pb-8 flex flex-wrap gap-3">
                     <button
                       onClick={() => openPoem(fate)}
@@ -383,11 +384,11 @@ export default function Home() {
                     </button>
                     <button
                       onClick={swapFate}
-                      disabled={fateLoading || leaving}
+                      disabled={fateLoading}
                       className="inline-flex items-center gap-2 border border-darkline text-silver px-5 py-2.5 rounded-lg text-sm hover:border-silver transition-colors disabled:opacity-50 disabled:cursor-wait"
                     >
-                      {leaving ? <RefreshCw size={15} className="animate-spin" /> : <Shuffle size={15} />}
-                      换一首
+                      {fateLoading ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRight size={15} />}
+                      下一首
                     </button>
                   </div>
                 </div>

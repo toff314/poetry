@@ -99,24 +99,6 @@ body {
   animation-fill-mode: forwards;
 }
 
-/* ── 首页命运卡 · 翻页式换卡 ───────────────────────────── */
-@keyframes card-out-right {
-  to { opacity: 0.12; transform: translateX(120%) rotate(3deg); }
-}
-.fate-out-right {
-  animation: card-out-right 0.32s cubic-bezier(0.4, 0, 0.8, 0.35) forwards;
-  pointer-events: none;
-}
-.fate-pad {
-  position: absolute;
-  inset: 0;
-  border-radius: 1rem;
-  border: 1px solid rgba(212, 175, 55, 0.18);
-  background: linear-gradient(180deg, rgba(40, 33, 23, 0.62), rgba(16, 13, 10, 0.86));
-}
-.fate-pad-3 { transform: translate(3px, 5px); }
-.fate-pad-2 { transform: translate(7px, 10px); }
-
 /* ── 影院呼吸动效（Hero Ken Burns + 文案淡入）────────────── */
 @keyframes hero-kb {
   from { transform: scale(1); }
@@ -133,3 +115,4 @@ body {
 .hero-fade-up {
   animation: fade-up 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both 0.1s;
 }
+
