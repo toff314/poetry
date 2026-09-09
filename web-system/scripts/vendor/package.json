@@ -1,0 +1,9 @@
+{
+  "name": "tts-scripts",
+  "version": "1.0.0",
+  "description": "TTS converter scripts using node-edge-tts",
+  "dependencies": {
+    "node-edge-tts": "^1.0.0",
+    "commander": "^12.0.0"
+  }
+}

@@ -297,7 +297,7 @@ for (let i = 0; i < scenes.length; i++) {
   setStage('tts', 76 + Math.round((i / scenes.length) * 14), `朗诵生成中 ${sc.id} (${i + 1}/${scenes.length})…`);
   const tr = spawnSync(
     'node',
-    [path.join(__dirname, 'tts-voice.mjs'), sc.text, '--engine', voice.engine, '--voice', voice.voice, '--output', out],
+    [path.join(__dirname, 'tts-voice.mjs'), sc.text, '--engine', voice.engine,     '--edge-voice', voice.voice, '--output', out],
     { encoding: 'utf-8', timeout: 180000 }
   );
   if (tr.status !== 0) {
