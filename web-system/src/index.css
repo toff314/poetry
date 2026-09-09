@@ -98,7 +98,6 @@ body {
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
-
 /* ── 影院呼吸动效（Hero Ken Burns + 文案淡入）────────────── */
 @keyframes hero-kb {
   from { transform: scale(1); }
@@ -116,3 +115,55 @@ body {
   animation: fade-up 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both 0.1s;
 }
 
+/* ── 放映厅：Ken Burns 缓慢推拉（四向变体，按场景散列选取） ── */
+@keyframes kb-zoom-in {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.12) translate(0, 0); }
+}
+@keyframes kb-zoom-out {
+  from { transform: scale(1.12) translate(0, 0); }
+  to { transform: scale(1) translate(0, 0); }
+}
+@keyframes kb-pan-left {
+  from { transform: scale(1.1) translate(2.5%, 0); }
+  to { transform: scale(1.1) translate(-2.5%, 0); }
+}
+@keyframes kb-pan-right {
+  from { transform: scale(1.1) translate(-2.5%, 1%); }
+  to { transform: scale(1.1) translate(2.5%, -1%); }
+}
+.cinema-kb {
+  animation-duration: 22s;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+  will-change: transform;
+}
+.cinema-kb.kb-zoom-in { animation-name: kb-zoom-in; }
+.cinema-kb.kb-zoom-out { animation-name: kb-zoom-out; }
+.cinema-kb.kb-pan-left { animation-name: kb-pan-left; }
+.cinema-kb.kb-pan-right { animation-name: kb-pan-right; }
+
+/* ── 放映厅：胶片颗粒 + 暗角（ cinema feel ） ── */
+.cinema-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  animation: cinema-grain-shift 0.9s steps(3) infinite;
+}
+@keyframes cinema-grain-shift {
+  0% { background-position: 0 0; }
+  33% { background-position: -60px 40px; }
+  66% { background-position: 40px -60px; }
+  100% { background-position: 0 0; }
+}
+.cinema-vignette {
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* ── 放映厅：字幕淡入 ── */
+@keyframes cinema-caption-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cinema-caption {
+  animation: cinema-caption-in 1.2s ease-out both;
+}

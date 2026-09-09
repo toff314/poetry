@@ -1,13 +1,42 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, Music, Music2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Home from './pages/Home';
 import Library from './pages/Library';
 import PoemDetail from './pages/PoemDetail';
 import FontSwitcher from './components/FontSwitcher';
+import AmbientBgm from './components/AmbientBgm';
 import Gallery from './pages/Gallery';
 import Topics from './pages/Topics';
 import Topic from './pages/Topic';
+import Cinema from './pages/Cinema';
+import {
+  isAmbientBgmEnabled,
+  toggleAmbientBgm,
+  subscribeAmbientBgm,
+  ambientBgmTitle,
+} from './lib/ambientBgm';
+
+/** 环境背景乐开关：默认开，首次用户手势后出声；沉浸页/放映厅让位给页面自管 BGM */
+function AmbientBgmToggle() {
+  const { pathname } = useLocation();
+  const isSelfManaged = pathname.startsWith('/poem/') || pathname.startsWith('/cinema');
+  const [on, setOn] = useState(isAmbientBgmEnabled());
+
+  useEffect(() => subscribeAmbientBgm(() => setOn(isAmbientBgmEnabled())), []);
+
+  if (isSelfManaged) return null;
+  return (
+    <button
+      onClick={toggleAmbientBgm}
+      className={`p-1.5 rounded-full transition-colors ${on ? 'text-gold' : 'text-silver/50 hover:text-silver'}`}
+      title={on ? `关闭背景乐${ambientBgmTitle() ? `（${ambientBgmTitle()}）` : ''}` : '开启背景乐'}
+      aria-label="环境背景乐开关"
+    >
+      {on ? <Music2 size={16} /> : <Music size={16} />}
+    </button>
+  );
+}
 
 // SPA 路由变化时向 Umami 上报 pageview（script.js 首次加载会自行上报初始页）
 function RouteTracker() {
@@ -28,6 +57,7 @@ function Nav() {
     { to: '/', label: '首页' },
     { to: '/library', label: '诗词库' },
     { to: '/gallery', label: '沉浸画廊' },
+    { to: '/cinema', label: '放映厅' },
     { to: '/topics', label: '专题' },
   ];
 
@@ -47,6 +77,7 @@ function Nav() {
       </div>
 
       <div className="flex items-center gap-2">
+        <AmbientBgmToggle />
         <FontSwitcher />
         <button className="md:hidden text-paper p-1" onClick={() => setOpen(!open)} aria-label="菜单">
           {open ? <X size={22} /> : <Menu size={22} />}
@@ -72,12 +103,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-ink">
       <RouteTracker />
+      <AmbientBgm />
       <Nav />
       <main className="pt-16">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/library" element={<Library />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/cinema" element={<Cinema />} />
           <Route path="/topics" element={<Topics />} />
           <Route path="/topic/:tag" element={<Topic />} />
           <Route path="/poem/:id" element={<PoemDetail />} />

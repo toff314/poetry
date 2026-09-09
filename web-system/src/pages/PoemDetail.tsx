@@ -70,7 +70,7 @@ export default function PoemDetail() {
   const poemRef = useRef(poem);
   poemRef.current = poem;
 
-  // 背景音乐（古筝曲库）
+  // 背景音乐（Suno BGM 模板库，按诗文情绪匹配）
   const [bgmTracks, setBgmTracks] = useState<BgmTrack[]>([]);
   const [bgmOn, setBgmOn] = useState(true);
   const [bgmIdx, setBgmIdx] = useState(-1); // -1 = 自动匹配
@@ -534,14 +534,14 @@ export default function PoemDetail() {
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors ${
               bgmOn && bgmTitle ? 'text-gold' : bgmOn ? 'text-paper' : 'text-silver/50'
             }`}
-            title={bgmOn ? '关闭背景乐（古筝）' : '开启背景乐（古筝）'}
+            title={bgmOn ? '关闭背景乐' : '开启背景乐'}
             aria-label="背景音乐开关"
           >
             {bgmOn ? <Music2 size={14} /> : <Music size={14} />}
             {bgmTitle ? (
               <span className="max-w-[7rem] truncate">{bgmTitle}</span>
             ) : (
-              <span className="hidden md:inline">古筝</span>
+              <span className="hidden md:inline">背景乐</span>
             )}
           </button>
           {bgmOn && bgmTracks.length > 0 && (
