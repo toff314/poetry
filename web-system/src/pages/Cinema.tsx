@@ -151,11 +151,17 @@ export default function Cinema() {
         return;
       }
       setProgram(items);
-      // 预载时长与画面（不阻塞入场）
-      items.forEach((it, i) => {
-        probeDuration(it.track).then((d) => {
+      // 预载时长与画面（不阻塞入场）；同一 track 只探测一次，按 track.id 写回所有引用片目
+      const uniqueTracks = new Map<string, BgmTrack>();
+      items.forEach((it) => {
+        if (!uniqueTracks.has(it.track.id)) uniqueTracks.set(it.track.id, it.track);
+      });
+      uniqueTracks.forEach((track) => {
+        probeDuration(track).then((d) => {
           if (d > 0) {
-            setProgram((prev) => prev.map((x, xi) => (xi === i ? { ...x, duration: clamp(d, MIN_POEM_S, MAX_POEM_S) } : x)));
+            setProgram((prev) =>
+              prev.map((x) => (x.track.id === track.id ? { ...x, duration: clamp(d, MIN_POEM_S, MAX_POEM_S) } : x))
+            );
           }
         });
       });
@@ -413,6 +419,7 @@ function Theater(props: {
   playingRef.current = playing;
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  const gestureRetryCleanupRef = useRef<(() => void) | null>(null);
 
   const item = program[poemIdx];
   const sceneIdx = stepIdx % item.scenes.length;
@@ -554,7 +561,20 @@ function Theater(props: {
     au.src = bgmUrl(item.track);
     au.loop = true;
     au.volume = BGM_VOLUME;
-    if (playingRef.current) au.play().catch(() => {});
+    const requestGestureRetry = () => {
+      if (gestureRetryCleanupRef.current) return;
+      const onGesture = () => {
+        gestureRetryCleanupRef.current = null;
+        if (playingRef.current && au.paused) au.play().catch(() => {});
+      };
+      window.addEventListener('pointerdown', onGesture, { once: true });
+      window.addEventListener('keydown', onGesture, { once: true });
+      gestureRetryCleanupRef.current = () => {
+        window.removeEventListener('pointerdown', onGesture);
+        window.removeEventListener('keydown', onGesture);
+      };
+    };
+    if (playingRef.current) au.play().catch(requestGestureRetry);
     const onMeta = () => {
       const d = au.duration;
       if (Number.isFinite(d) && d > 0) {
@@ -579,6 +599,8 @@ function Theater(props: {
       au.removeEventListener('loadedmetadata', onMeta);
       au.removeEventListener('timeupdate', onTime);
       window.clearTimeout(poemTimerRef.current);
+      gestureRetryCleanupRef.current?.();
+      gestureRetryCleanupRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poemIdx, item.track.id]);

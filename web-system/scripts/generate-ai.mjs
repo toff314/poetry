@@ -255,7 +255,7 @@ function runArkImage(prompt, out) {
 }
 function runDoubaoImage(prompt, out) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'poetry-doubao-'));
-  const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '1920', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
+  const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
   const src = path.join(tmp, 'cover.jpeg');
   if (r.status !== 0 || !fs.existsSync(src)) {
     console.error('doubao-cli 输出:', (r.stderr || r.stdout || '').slice(-400));
