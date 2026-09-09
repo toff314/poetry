@@ -29,3 +29,32 @@
 - 见 `.coding-harness/2026-09-09-cinema-bgm-silent/plan.md` 验收标准 A1-A9。
 - 验证命令：`cd web-system && npm run build`（本仓库唯一可用的检查命令，
   无 lint/test 脚本）。
+
+## 需求：修复放映厅幕间转场结束时旧图一闪而过
+
+### 背景与问题
+
+放映厅（/cinema）Theater 幕间 WebGL 转场完成瞬间，底层 `<img>` 会短暂
+闪现上一幕旧图（旧图闪一帧）。
+
+根因：`runTransition`（src/pages/Cinema.tsx:469-500）在转场 t=1 时
+`setDisplayed(to)`（React 异步提交）后立即 `transitionEngine.clear()`
+（同步清空 canvas）。画布透明后、React 提交新 `displayed` 之前，
+底层 `<img>` 仍渲染旧场景，旧图闪一帧；`render` 失败（`!ok`）分支
+同样缺少 clear 时序管理。
+
+### 需求描述
+
+1. canvas 的 `clear()` 时机必须与 `displayed` 状态提交绑定（例如在
+   `useEffect(..., [displayed])` 中 clear，或 `flushSync` 提交后 clear），
+   保证任一时刻"画布非空 ⇒ 画布覆盖底层 `<img>`"。
+2. 竞态防护：转场进行中（`transitioningRef.current === true`）effect
+   clear 不得执行，连续快速切幕不打断新转场。
+3. 失败路径（`render` 返回 false）与正常完成路径的 clear 时序一致。
+4. 不改 `transitionEngine.clear()` 的语义；不改降级路径
+   （duration<=0 / !webglOk）行为；不改 DB、后端、路由。
+
+### 验收
+
+- 见 `.coding-harness/2026-09-09-cinema-transition-flash/plan.md` 验收标准 A1-A9。
+- 验证命令：`cd web-system && npm run build`。

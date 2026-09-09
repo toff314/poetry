@@ -493,13 +493,18 @@ function Theater(props: {
         } else {
           transitioningRef.current = false;
           setDisplayed(to);
-          transitionEngine.clear();
         }
       };
       rafRef.current = requestAnimationFrame(render);
     },
     [program, props.transitionKey, webglOk]
   );
+
+  /* displayed 提交（commit）后清空转场画布；转场进行中不清，避免打断新转场首帧 */
+  useEffect(() => {
+    if (transitioningRef.current) return;
+    transitionEngine.clear();
+  }, [displayed]);
 
   /* 跳转：诗/幕的通用入口 */
   const goTo = useCallback(
