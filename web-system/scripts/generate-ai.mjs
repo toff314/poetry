@@ -229,10 +229,8 @@ if (process.argv.includes('--dry-run')) {
 
 const genDir = path.join(PUB_GEN, rawId);
 fs.mkdirSync(genDir, { recursive: true });
-// 生图引擎：默认 doubao-cli（豆包网页版 Seedream，直出 1920 JPEG）；设 IMAGE_ENGINE=ark 切回火山方舟 Ark Seedream API（ark-image.mjs）
-const IMAGE_ENGINE = String(process.env.IMAGE_ENGINE || 'doubao').toLowerCase();
 
-// ── 2. 生图（hero + 每段） ──────────────────────────────────────────
+// ── 2. 生图（hero + 每段，doubao-cli 豆包网页版 Seedream） ──────────
 const ERA = String(poem.dynasty || '古典').replace('朝', '') || '古典';
 function buildPrompt(hint) {
   return (
@@ -245,17 +243,9 @@ const imgTasks = [
   { name: 'hero', hint: plan.heroHint },
   ...sections.map((s, i) => ({ name: `scene-${i + 1}`, hint: s.imageHint })),
 ];
-
-function runArkImage(prompt, out) {
-  const r = spawnSync('node', [path.join(__dirname, 'ark-image.mjs'), prompt, '--out', out, '--watermark', '0'], { encoding: 'utf-8', timeout: 420000 });
-  if (r.status !== 0) {
-    console.error('ark-image stderr:', (r.stderr || '').slice(-400));
-    fail(`生图失败 ${out}（ark）`);
-  }
-}
 function runDoubaoImage(prompt, out) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'poetry-doubao-'));
-  const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '1920', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
+  const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '0', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
   const src = path.join(tmp, 'cover.jpeg');
   if (r.status !== 0 || !fs.existsSync(src)) {
     console.error('doubao-cli 输出:', (r.stderr || r.stdout || '').slice(-400));
@@ -266,7 +256,7 @@ function runDoubaoImage(prompt, out) {
   try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
 }
 
-setStage('images', 12, `开始 AI 生图（${IMAGE_ENGINE === 'ark' ? 'Ark Seedream API' : 'doubao-cli'}，共 ${imgTasks.length} 张，每张约 30-90 秒）`);
+setStage('images', 12, `开始 AI 生图（doubao-cli，共 ${imgTasks.length} 张，每张约 30-90 秒）`);
 for (let i = 0; i < imgTasks.length; i++) {
   const t = imgTasks[i];
   const out = path.join(genDir, `${t.name}.jpg`);
@@ -275,8 +265,7 @@ for (let i = 0; i < imgTasks.length; i++) {
     continue;
   }
   setStage('images', 12 + Math.round((i / imgTasks.length) * 58), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
-  if (IMAGE_ENGINE === 'ark') runArkImage(buildPrompt(t.hint), out);
-  else runDoubaoImage(buildPrompt(t.hint), out);
+  runDoubaoImage(buildPrompt(t.hint), out);
 }
 
 // ── 4. 分段朗诵（默认云健） ────────────────────────────────────────
@@ -304,11 +293,16 @@ for (let i = 0; i < scenes.length; i++) {
     console.error((tr.stderr || tr.stdout || '').slice(-300));
     fail(`朗诵生成失败 ${sc.id}`);
   }
-  sceneUrls[sc.id] = `/audio/${rawId}/${argVoice}/${sc.id}.mp3`;
+  try { sceneUrls[sc.id] = `/audio/${rawId}/${argVoice}/${sc.id}.mp3?v=${Math.round(fs.statSync(out).mtimeMs)}`; } catch { sceneUrls[sc.id] = `/audio/${rawId}/${argVoice}/${sc.id}.mp3`; }
 }
 
 // ── 5. 组装 generated json ─────────────────────────────────────────
 setStage('assemble', 96, '组装页面数据…');
+// nginx 对 /generated|/audio 设了 expires 7d，重生成后需用 mtime 查询参数破缓存
+const vOf = (file) => {
+  try { return `?v=${Math.round(fs.statSync(file).mtimeMs)}`; } catch { return ''; }
+};
+const genDir2 = path.join(PUB_GEN, rawId);
 const generated = {
   id: String(rawId),
   title: String(plan.title || poem.title || ''),
@@ -318,14 +312,14 @@ const generated = {
   kicker: plan.kicker || 'AI 沉浸式生成',
   definingLine: plan.definingLine || '',
   intro: plan.intro || '',
-  heroImage: `/generated/${rawId}/hero.jpg`,
+  heroImage: `/generated/${rawId}/hero.jpg${vOf(path.join(genDir2, 'hero.jpg'))}`,
   sections: sections.map((s, i) => ({
     id: `scene-${i + 1}`,
     index: CN_NUM[i] || String(i + 1),
     original: s.original,
     literal: s.literal,
     analysis: s.analysis,
-    image: `/generated/${rawId}/scene-${i + 1}.jpg`,
+    image: `/generated/${rawId}/scene-${i + 1}.jpg${vOf(path.join(genDir2, `scene-${i + 1}.jpg`))}`,
   })),
   closing: plan.closing || '',
   audio: {

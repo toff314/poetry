@@ -116,7 +116,7 @@ export default function Gallery() {
               const withArt = g.hasArt && g.cover;
               const [c1, c2] = PALETTES[hashIdx(g.id, PALETTES.length)];
               const rk = rankMap[g.id];
-              const feature = idx % 3 === 0;
+              const feature = idx % 7 === 0 || idx % 7 === 3; // 2+1 / 1+2 / 1+1+1 三行一循环，无空格
               return (
                 <div
                   key={g.id}
