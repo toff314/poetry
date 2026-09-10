@@ -23,7 +23,7 @@ const MOOD_LEXICON: { re: RegExp; score: Record<string, number> }[] = [
   },
   {
     // 豪放
-    re: /黄河|长江|大江|江海|万里|千山|千杯|三百杯|将进酒|醉|狂|长风|挽弓|射虎|老夫|少年狂|青天|烟雨任平生|何妨|吟啸|绝顶|览众山|浪淘/,
+    re: /黄河|长江|大江|江海|万里|千山|千杯|三百杯|将进酒|狂|长风|挽弓|射虎|老夫|少年狂|青天|烟雨任平生|何妨|吟啸|绝顶|览众山|浪淘/,
     score: { 豪放: 2, 激昂: 2, 豪迈: 2, 壮阔: 1 },
   },
   {
@@ -103,8 +103,24 @@ export function bgmUrl(track: BgmTrack): string {
   return `${BGM_BASE}/${track.file || `${track.id}.mp3`}`;
 }
 
-function moodOverlap(moods: string[], scores: Record<string, number>): number {
-  return moods.reduce((sum, m) => sum + (scores[m] || 0), 0);
+/**
+ * 泛情绪标签（多族共享）vs 族特征标签（如 山水/月夜/边塞）。
+ * 选曲分两级：先看族特征标签命中（d），命中相同再比泛标签（g），
+ * 避免「花/雨/梦/月」等高频词把所有诗都堆到月夜/山水这类泛标签多的曲目。
+ * 完全没有族特征信号时整库散列打散，不再集中兜底到少数几首。
+ */
+const GENERIC_MOODS = new Set(['静谧', '清雅', '婉约', '哀思', '悠远', '苍凉', '辽阔', '激昂', '豪迈', '壮阔', '闲适', '清新', '空灵']);
+
+function moodOverlap(moods: string[], scores: Record<string, number>): { d: number; g: number } {
+  let d = 0;
+  let g = 0;
+  for (const m of moods) {
+    const s = scores[m] || 0;
+    if (!s) continue;
+    if (GENERIC_MOODS.has(m)) g += Math.min(s, 1);
+    else d += s;
+  }
+  return { d, g };
 }
 
 /** djb2 散列：同一文本稳定得到同一候选（同族多曲时间换空间式轮换） */
@@ -128,13 +144,15 @@ export function rankBgm(tracks: BgmTrack[], text: string): BgmTrack[] {
     }
   }
   const overlaps = tracks.map((t) => moodOverlap(t.mood, scores));
-  const best = Math.max(...overlaps);
+  const bestD = Math.max(...overlaps.map((o) => o.d));
   let pool: BgmTrack[];
-  if (best > 0) {
-    pool = tracks.filter((_, i) => overlaps[i] === best);
+  if (bestD > 0) {
+    const candidates = tracks.filter((_, i) => overlaps[i].d === bestD);
+    const bestG = Math.max(...candidates.map((t) => overlaps[tracks.indexOf(t)].g));
+    pool = candidates.filter((t) => overlaps[tracks.indexOf(t)].g === bestG);
   } else {
-    pool = tracks.filter((t) => t.mood.includes('山水') || t.mood.includes('月夜'));
-    if (!pool.length) pool = [tracks[0]];
+    // 无族特征信号：全库按文本散列打散，避免集中兜底到同一族
+    pool = tracks.slice();
   }
   const h = hashStr(text || tracks[0].id);
   return pool
@@ -144,8 +162,9 @@ export function rankBgm(tracks: BgmTrack[], text: string): BgmTrack[] {
 }
 
 /**
- * 根据诗文文本启发式选出最贴合的曲目；同分时用文本散列在候选间稳定挑选，
- * 保证同诗同曲、异诗可能轮到同族其他候选。无命中时兜底山水/月夜族。
+ * 根据诗文文本启发式选出最贴合的曲目：族特征标签优先、泛情绪标签次之，
+ * 同分时用文本散列在候选间稳定挑选（同诗同曲、异诗打散）；
+ * 无任何特征信号时整库散列，不集中兜底到单一族。
  */
 export function matchBgm(tracks: BgmTrack[], text: string): BgmTrack | null {
   return rankBgm(tracks, text)[0] || null;

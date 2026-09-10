@@ -82,6 +82,37 @@ export async function getGeneratedPoem(id: string): Promise<GeneratedPoem> {
   return fetchJson(`/generated/${id}`);
 }
 
+export interface PoemVideoInfo {
+  url: string;
+  ext: string;
+  size: number;
+  updatedAt: number;
+}
+
+/** 查询已缓存的沉浸页导出视频（不存在返回 null） */
+export async function getPoemVideo(id: string): Promise<PoemVideoInfo | null> {
+  try {
+    const res = await fetch(`${API_BASE}/poem-video/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    const json = await res.json().catch(() => null);
+    return json?.data || null;
+  } catch {
+    return null;
+  }
+}
+
+/** 上传渲染好的视频到 public 产物目录（下次直接下载） */
+export async function uploadPoemVideo(id: string, blob: Blob): Promise<PoemVideoInfo> {
+  const res = await fetch(`${API_BASE}/poem-video/${encodeURIComponent(id)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type || 'application/octet-stream' },
+    body: blob,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((json as { error?: string }).error || `上传失败 (${res.status})`);
+  return (json as { data: PoemVideoInfo }).data;
+}
+
 export interface PoemPlain {
   id: string;
   title: string;

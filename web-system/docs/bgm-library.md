@@ -15,9 +15,9 @@
 
 Suno clip 的 `metadata.tags` 里嵌入了完整 style 提示词，与 guide 中各族的提示词逐一比对即可确认归属（不用靠生成的英文名猜）。入库前按 guide 验收清单过一遍：无哼唱/无人声、前奏 ≤10 秒、情绪合族、同族候选气质有区分。
 
-## 已入库（20 首，2026-09-08）
+## 已入库（48 首，截至 2026-09-10）
 
-每族第 1 首的两个候选，clip ID 用于追溯/重新下载：
+每族第 1 首的两个候选，clip ID 用于追溯/重新下载（2026-09-09 新增 18 首的 clip ID 见下「未生成」勾选行）：
 
 | 文件 | 族·标题 | Suno clip ID ×2 | 源曲名 |
 |---|---|---|---|
@@ -60,24 +60,37 @@ bgm-daowang-01   1fce675f-2f38-4408-af0f-40b1f1a4c5e5
 bgm-daowang-02   a2729605-b19d-4ef3-b124-32d434a3f864
 ```
 
-## 未生成（22 首，明天继续）
+## 未生成（明天继续）
 
 按 guide 中 style 提示词生成（`--instrumental --wait`，每提示词出 2 候选挑优），入库后在下表打勾并补 clip ID：
 
-- [ ] 族1：远岫孤云 → `bgm-shanshui-03(/04)`；溪山行旅 → `bgm-shanshui-04(/05)`
-- [ ] 族2：举杯邀月 → `bgm-yueye-03(/04)`；月落乌啼 → `bgm-yueye-04(/05)`
-- [ ] 族3：篱落炊烟 → `bgm-tianyuan-03(/04)`；采菊东篱 → `bgm-tianyuan-04(/05)`
-- [ ] 族4：仗剑天涯 → `bgm-jianghu-03(/04)`；山一程水一程 → `bgm-jianghu-04(/05)`
-- [ ] 族5：铁马冰河 → `bgm-biansai-03(/04)`；长河落日 → `bgm-biansai-04(/05)`
-- [ ] 族6：大江东去 → `bgm-huaigu-03(/04)`；六朝旧事 → `bgm-huaigu-04(/05)`
-- [ ] 族7：一蓑烟雨任平生 → `bgm-haofang-03(/04)`；把酒问青天 → `bgm-haofang-04(/05)`
-- [ ] 族8：执手相看泪眼 → `bgm-wanxiang-03(/04)`；一种相思 → `bgm-wanxiang-04(/05)`
-- [ ] 族9：薄雾浓云 → `bgm-chungui-03(/04)`；知否知否 → `bgm-chungui-04(/05)`
-- [ ] 族10：烛影摇红 → `bgm-daowang-03(/04)`
-- [ ] 族11（全新）：曲径通幽 → `bgm-chan-01(/02)`；云在青天 → `bgm-chan-02(/03)`；本来无一物 → `bgm-chan-03(/04)`
-- [ ] 族12（全新）：长亭古道 → `bgm-songbie-01(/02)`；孤帆远影 → `bgm-songbie-02(/03)`；暗香疏影 → `bgm-songbie-03(/04)`；人生得意 → `bgm-songbie-04(/05)`
+- [x] 族1：远岫孤云 → `bgm-shanshui-03/04`（clip 4d7b1fc3-8947-48e3-a256-3bf8eed93ff9, cbefdf47-7ad2-4275-bf10-1cfe1b4d2219）；溪山行旅 → `bgm-shanshui-05/06`（454141d6-ee52-4920-9599-b22f38f0fb6b, e6a83b4a-2c11-4fd7-9999-a0aaa8f460e2）
+- [x] 族2：举杯邀月 → `bgm-yueye-03/04`（1b33f380-aa22-40ca-b14e-c907eb20774e, 0a9911ca-7ceb-4dee-8eab-52aaf57b55f3）；月落乌啼 → `bgm-yueye-05/06`（b2660620-31ab-4e4c-a3eb-f4e173cc81f7, 243e604a-8368-4450-816d-4f4f84d301f4）
+- [x] 族3：篱落炊烟 → `bgm-tianyuan-03/04`（93482597-c57b-4836-8ead-864cfa5c9d2b, f6f9e8d9-3ecf-41b0-bc6e-a87e4b892d51）；采菊东篱 → `bgm-tianyuan-05/06`（9eaf746c-2662-43d2-b465-bbba08025271, 405989dc-205c-484d-ab79-91c8fab7fdf4）
+- [x] 族4：仗剑天涯 → `bgm-jianghu-03/04`（83ead337-00c5-42ab-87f1-979ca5f08c37, 51c113d2-27ab-4b48-a3cc-3e872a025a50）；山一程水一程 → `bgm-jianghu-05/06`（f032eee1-cfed-42b8-96b6-936431f9399d, 4ac8039e-94e6-40ae-be7a-e55c453920b2）
+- [x] 族5：铁马冰河 → `bgm-biansai-03/04`（08904307-e06d-4be7-90aa-639917e2d0f5, 26214a5c-c088-4dd7-9ae7-af901ed249ec）；长河落日 → `bgm-biansai-05/06`（b7aeed47-81ce-4ce0-879c-ce7620577680, f09a6cde-40bf-4ad6-a6ba-41e18fa6b54f）
+- [x] 族6：大江东去 → `bgm-huaigu-03/04`（7f7cadda-8b0a-4cf4-b745-f87da923826c, 0ea12b89-5956-46ad-92e4-499d0c295bcf）；六朝旧事 → `bgm-huaigu-05/06`（2ed1bcb9-d12a-4da0-a24b-e16bc207caf8, 10d40d1d-9218-48e6-8944-13daf611fec8）
+- [ ] 族7：一蓑烟雨任平生 → `bgm-haofang-03(/04)`；把酒问青天 → `bgm-haofang-05(/06)`
+- [ ] 族8：执手相看泪眼 → `bgm-wanxiang-03(/04)`；一种相思 → `bgm-wanxiang-05(/06)`
+- [ ] 族9：薄雾浓云 → `bgm-chungui-03(/04)`；知否知否 → `bgm-chungui-05(/06)`
+- [x] 族10：烛影摇红 → `bgm-daowang-03/04`（8407c56f-ce9b-4f04-8df9-232937cc563b, 38770810-a80c-44b7-b87e-e0323a5d5baf）
+- [ ] 族11（全新）：曲径通幽 → `bgm-chan-01/02`（43adc3cf-60dc-4931-97cb-8ebf293777be, 33ac8f62-3a13-4eec-8395-eb855d0d8bf6）✓；云在青天 → `bgm-chan-03(/04)`；本来无一物 → `bgm-chan-05(/06)`
+- [ ] 族12（全新）：长亭古道 → `bgm-songbie-01(/02)`；孤帆远影 → `bgm-songbie-03(/04)`；暗香疏影 → `bgm-songbie-05(/06)`；人生得意 → `bgm-songbie-07(/08)`
 
 > 族 11、12 的拼音前缀现定 `chan`（禅意）、`songbie`（送别咏物节庆），入库时写入 bgm.json 的 family 字段。
+>
+> 2026-09-09/10 进展：两日共入库 28 首（族1-6 各 4-6 首 + 族10 烛影摇红 + 族11 曲径通幽），库内共 48 首。
+> 2026-09-09 计划 12 提示词已全部完成；明天剩：族7（一蓑烟雨任平生/把酒问青天）、族8（执手相看泪眼/一种相思）、
+> 族9（薄雾浓云/知否知否）、族11（云在青天/本来无一物）、族12（长亭古道/孤帆远影/暗香疏影/人生得意）共 11 提示词。
+> 用 `scripts/batch-suno-bgm.sh <tsv>` 批跑（模型须 `SUNO_MODEL=chirp-goose`，即 v6-mini；`chirp-auk(-turbo)` 已 403 无权限）。
+>
+> 当日排障备忘：① `--no-captcha` 直连 generate 会 422（token 必填）；② 匿名页 hCaptcha 会弹人工挑战导致
+> `--wait` 卡死 180s，**给 captcha 页注入 `__session=<刷新后的JWT>` 登录态后 invisible 验证码直接过**
+> （脚本 `scripts/suno-bgm-gen.py`，批量用 `scripts/batch-suno-bgm.sh`）；③ 多会话/多 chrome 抢 CDP 9233 端口 +
+> 内存耗尽是大量超时的根因，批跑须用独立端口（9255）+ 每次清场 + `killpg` 回收整棵进程树；
+> ④ Chrome `--proxy-server` 只认 `socks5://`，`socks5h://` 会报 ERR_NO_SUPPORTED_PROXIES；
+> ⑤ 2026-09-10 起账号仅 v6-mini 有权限（mv=`chirp-goose`），`chirp-auk(-turbo)` 一律 403 free_upsell；
+> ⑥ hCaptcha 对短时间高频请求会升级人工挑战，失败重试须留间隔（≥1 分钟），与网页版生成限流一致。
 
 ## 明天续作步骤
 
