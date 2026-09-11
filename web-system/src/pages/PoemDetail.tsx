@@ -4,8 +4,7 @@ import {
   ArrowLeft, Loader2, Sparkles, Play, Pause, RotateCcw, Square, Volume2,
   Music, Music2, SkipBack, SkipForward, Download,
 } from 'lucide-react';
-import { getGeneratedPoem, getPoemById, getRankByDb, findRankByTitle, tagText, getPoemVideo, uploadPoemVideo, type RankInfo } from '../lib/api';
-import type { PoemVideoInfo } from '../lib/api';
+import { getGeneratedPoem, getPoemById, getRankByDb, findRankByTitle, tagText, type RankInfo } from '../lib/api';
 import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, matchBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
@@ -63,20 +62,11 @@ export default function PoemDetail() {
   const [mode, setMode] = useState<PlayMode>('idle');
   const [voiceId, setVoiceId] = useState('');
 
-  // 下载视频（配乐 + 画面切换，实时渲染为 MP4；产物缓存到 public，二次直接下载）
+  // 下载视频（配乐 + 画面切换，实时渲染为 MP4；每次重新生成，不落盘产物）
   const [exporting, setExporting] = useState(false);
   const [exportRatio, setExportRatio] = useState(0);
-  const [exportPhase, setExportPhase] = useState<'render' | 'upload'>('render');
   const [exportErr, setExportErr] = useState('');
-  const [cachedVideo, setCachedVideo] = useState<PoemVideoInfo | null>(null);
   const exportAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    let alive = true;
-    getPoemVideo(id).then((v) => { if (alive) setCachedVideo(v); }).catch(() => {});
-    return () => { alive = false; };
-  }, [id]);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -367,7 +357,7 @@ export default function PoemDetail() {
     }
   };
 
-  const canExport = (!!cachedVideo || (!!poem && !!currentTrack && buildExportScenes(poem).length > 0)) && !generating;
+  const canExport = !!poem && !!currentTrack && buildExportScenes(poem).length > 0 && !generating;
 
   const triggerDownload = (url: string, filename: string) => {
     const a = document.createElement('a');
@@ -379,18 +369,11 @@ export default function PoemDetail() {
   };
 
   const handleExport = async () => {
-    if (!poem || exporting || !canExport) return;
-    // 已缓存：直接下载产物，不再渲染
-    if (cachedVideo) {
-      triggerDownload(cachedVideo.url, `${poem.title}.${cachedVideo.ext}`);
-      return;
-    }
-    if (!currentTrack) return;
+    if (!poem || !currentTrack || exporting) return;
     stopAll();
     stopBgm();
     setExporting(true);
     setExportRatio(0);
-    setExportPhase('render');
     setExportErr('');
     const ac = new AbortController();
     exportAbortRef.current = ac;
@@ -404,14 +387,6 @@ export default function PoemDetail() {
       const localUrl = URL.createObjectURL(blob);
       triggerDownload(localUrl, `${poem.title}.${ext}`);
       window.setTimeout(() => URL.revokeObjectURL(localUrl), 10_000);
-      // 上传到 public 产物目录：下次任何访客直接下载
-      setExportPhase('upload');
-      try {
-        const info = await uploadPoemVideo(poem.id, blob);
-        setCachedVideo(info);
-      } catch (e) {
-        setExportErr(e instanceof Error && e.message ? `视频已本地下载；缓存失败：${e.message}` : '视频已本地下载；服务器缓存失败');
-      }
     } catch (e) {
       if (!(e instanceof DOMException && e.name === 'AbortError')) {
         setExportErr(e instanceof Error && e.message ? e.message : '视频生成失败，请重试');
@@ -640,7 +615,7 @@ export default function PoemDetail() {
           onClick={handleExport}
           disabled={!canExport || exporting}
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs bg-ink-light/80 border border-white/15 text-silver hover:text-paper hover:border-gold/50 backdrop-blur-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          title={cachedVideo ? '已生成过，直接下载' : canExport ? '渲染并下载（首次约 1~5 分钟，之后秒下）' : '需生成画面与配乐曲库就绪'}
+          title={canExport ? '渲染并下载（配乐 + 画面切换，约 1~5 分钟）' : '需生成画面与配乐曲库就绪'}
         >
           <Download size={13} />
           下载视频
@@ -697,29 +672,23 @@ export default function PoemDetail() {
         <div className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center px-6">
           <div className="w-full max-w-md rounded-xl border border-darkline bg-ink-light/90 p-8 text-center">
             <p className="text-xs tracking-[0.3em] text-gold uppercase mb-4">Exporting Video</p>
-            <h2 className="font-serif text-2xl text-paper mb-6">
-              {exportPhase === 'upload' ? '正在保存到服务器…' : `正在生成《${poem.title}》视频`}
-            </h2>
+            <h2 className="font-serif text-2xl text-paper mb-6">正在生成《{poem.title}》视频</h2>
             <div className="h-1.5 rounded bg-white/10 overflow-hidden mb-3">
               <div
-                className={`h-full bg-gold transition-[width] duration-500 ${exportPhase === 'upload' ? 'animate-pulse' : ''}`}
-                style={{ width: `${exportPhase === 'upload' ? 100 : Math.round(exportRatio * 100)}%` }}
+                className="h-full bg-gold transition-[width] duration-500"
+                style={{ width: `${Math.round(exportRatio * 100)}%` }}
               />
             </div>
-            <p className="text-sm text-silver mb-1">{exportPhase === 'upload' ? '100%' : `${Math.round(exportRatio * 100)}%`}</p>
+            <p className="text-sm text-silver mb-1">{Math.round(exportRatio * 100)}%</p>
             <p className="text-xs text-silver/60 leading-relaxed mb-6">
-              {exportPhase === 'upload'
-                ? '生成一次永久缓存，下次任何人进入本页都可秒下。'
-                : `配乐 · ${currentTrack?.title}。实时渲染中（成片约 1~5 分钟），请保持本页在前台，不要关闭。`}
+              配乐 · {currentTrack?.title}。实时渲染中（成片约 1~5 分钟），请保持本页在前台，不要关闭。
             </p>
-            {exportPhase === 'render' && (
-              <button
-                onClick={cancelExport}
-                className="inline-flex items-center gap-2 border border-white/20 text-paper px-5 py-2 rounded-lg text-sm hover:border-gold hover:text-gold transition-colors"
-              >
-                取消
-              </button>
-            )}
+            <button
+              onClick={cancelExport}
+              className="inline-flex items-center gap-2 border border-white/20 text-paper px-5 py-2 rounded-lg text-sm hover:border-gold hover:text-gold transition-colors"
+            >
+              取消
+            </button>
           </div>
         </div>
       )}

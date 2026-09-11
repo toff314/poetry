@@ -378,53 +378,6 @@ app.get('/api/video/:id', (req, res) => {
   }
 });
 
-// ── 沉浸页导出视频（前端实时渲染产物，缓存到 public/poem-videos 供直接下载） ──
-const POEM_VIDEO_DIR = path.join(__dirname, 'public', 'poem-videos');
-
-function findPoemVideo(id) {
-  for (const ext of ['mp4', 'webm']) {
-    const f = path.join(POEM_VIDEO_DIR, `${id}.${ext}`);
-    if (fs.existsSync(f)) {
-      const st = fs.statSync(f);
-      return { url: `/poem-videos/${id}.${ext}`, ext, size: st.size, updatedAt: st.mtimeMs };
-    }
-  }
-  return null;
-}
-
-app.get('/api/poem-video/:id', (req, res) => {
-  try {
-    const id = path.basename(req.params.id);
-    const found = findPoemVideo(id);
-    if (!found) return res.status(404).json({ error: 'not found' });
-    res.json({ success: true, data: found });
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
-
-app.post('/api/poem-video/:id', express.raw({ type: () => true, limit: '400mb' }), (req, res) => {
-  try {
-    const id = path.basename(req.params.id);
-    const buf = req.body;
-    if (!Buffer.isBuffer(buf) || buf.length < 1024) {
-      return res.status(400).json({ success: false, error: '视频数据为空或过小' });
-    }
-    // 魔数校验：mp4(ftyp) / webm(EBML)，防止错误格式落盘
-    const isMp4 = buf.length > 12 && buf.toString('ascii', 4, 8) === 'ftyp';
-    const isWebm = buf.length > 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3;
-    if (!isMp4 && !isWebm) {
-      return res.status(400).json({ success: false, error: '仅支持 mp4/webm 视频' });
-    }
-    const ext = isMp4 ? 'mp4' : 'webm';
-    fs.mkdirSync(POEM_VIDEO_DIR, { recursive: true });
-    fs.writeFileSync(path.join(POEM_VIDEO_DIR, `${id}.${ext}`), buf);
-    res.json({ success: true, data: findPoemVideo(id) });
-  } catch (e) {
-    res.status(500).json({ success: false, error: String(e) });
-  }
-});
-
 app.get('/api/generated', (_req, res) => {
   try {
     const index = getGeneratedIndex();

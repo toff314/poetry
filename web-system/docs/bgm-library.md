@@ -80,9 +80,11 @@ bgm-daowang-02   a2729605-b19d-4ef3-b124-32d434a3f864
 > 族 11、12 的拼音前缀现定 `chan`（禅意）、`songbie`（送别咏物节庆），入库时写入 bgm.json 的 family 字段。
 >
 > 2026-09-09/10 进展：两日共入库 28 首（族1-6 各 4-6 首 + 族10 烛影摇红 + 族11 曲径通幽），库内共 48 首。
-> 2026-09-09 计划 12 提示词已全部完成；明天剩：族7（一蓑烟雨任平生/把酒问青天）、族8（执手相看泪眼/一种相思）、
-> 族9（薄雾浓云/知否知否）、族11（云在青天/本来无一物）、族12（长亭古道/孤帆远影/暗香疏影/人生得意）共 11 提示词。
-> 用 `scripts/batch-suno-bgm.sh <tsv>` 批跑（模型须 `SUNO_MODEL=chirp-goose`，即 v6-mini；`chirp-auk(-turbo)` 已 403 无权限）。
+> 2026-09-09 计划 12 提示词已全部完成；**剩余 12 个提示词（24 首）**：族7（一蓑烟雨任平生/把酒问青天）、
+> 族8（执手相看泪眼/一种相思）、族9（薄雾浓云/知否知否）、族11（云在青天/本来无一物）、
+> 族12（长亭古道/孤帆远影/暗香疏影/人生得意）。
+> 批跑命令：`SUNO_MODEL=chirp-goose bash scripts/batch-suno-bgm.sh <tsv清单> [日志路径]`
+> （模型必须 chirp-goose=v6-mini；清单已备好：`logs/suno-bgm-tomorrow.tsv`；每提示词出 2-4 候选取前 2）。
 >
 > 当日排障备忘：① `--no-captcha` 直连 generate 会 422（token 必填）；② 匿名页 hCaptcha 会弹人工挑战导致
 > `--wait` 卡死 180s，**给 captcha 页注入 `__session=<刷新后的JWT>` 登录态后 invisible 验证码直接过**
@@ -94,8 +96,9 @@ bgm-daowang-02   a2729605-b19d-4ef3-b124-32d434a3f864
 
 ## 明天续作步骤
 
-1. `cli-anything-suno clip generate --title "bgm-<族>-<标题>" --tags "<guide 中该首的 style 提示词>" --instrumental --wait`（每首出 2 候选）
-2. `cli-anything-suno browse list --limit 100` 按 `metadata.tags` 比对确认归属，抄 clip ID
-3. `cli-anything-suno clip download <id> --output <tmp>`，命名 `bgm-<族>-<序号>.m4a` 放入 `public/audio/bgm/`
-4. 按验收清单试听打勾，更新本文两张表和 `bgm.json`
+1. `SUNO_MODEL=chirp-goose bash scripts/batch-suno-bgm.sh logs/suno-bgm-tomorrow.tsv logs/suno-bgm-day3.log`
+   （每提示词出 2-4 候选；hCaptcha 高频会弹人工挑战，脚本已带 3 次重试+清场，失败项可再跑一遍同一命令，done 清单自动跳过已完成）
+2. `cli-anything-suno clip download <id>...` 取每提示词前 2 个候选，命名 `bgm-<族>-<序号>.m4a` 放入 `public/audio/bgm/`
+3. 更新 `bgm.json`（family：豪放/婉约相思/春愁闺怨/禅意/送别咏物节庆）与本文两张表
+4. 36 提示词全量完成后可按 guide「长短版控制」给每族代表款做 30-60s 短版循环（ffmpeg 截取中段 + 交叉淡化）
 5. `bash sync-public.sh push`
