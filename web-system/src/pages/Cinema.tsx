@@ -16,9 +16,11 @@ import {
   Maximize,
   Film,
   Hand,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { getGeneratedIndex, getGeneratedPoem } from '../lib/api';
-import type { GeneratedPoem } from '../types';
+import type { AudioVoice, GeneratedPoem } from '../types';
 import { fetchBgmTracks, rankBgm, bgmUrl, BGM_VOLUME } from '../lib/bgm';
 import type { BgmTrack } from '../lib/bgm';
 import { TRANSITIONS, getTransition } from '../lib/transitions';
@@ -31,12 +33,18 @@ const MAX_POEM_S = 300;
 /** 单幕最长停留（超出则在诗内循环多轮画面） */
 const MAX_SCENE_S = 20;
 const INTRO_MS = 5200;
+/** 朗诵留白：念完一段后停留 5~10s（按诗句长度自动浮动），让用户看画面 */
+const VOICE_PAUSE_BASE_MS = 5000;
+const VOICE_PAUSE_PER_CHAR = 250;
+const VOICE_PAUSE_MAX_EXTRA = 5000;
 const TRANSITION_KEY_STORAGE = 'poetry-cinema-transition';
 const MODE_STORAGE = 'poetry-cinema-mode';
 
 interface CinemaScene {
   image: string;
   caption: string;
+  /** 对应朗诵音频的键：hero 或 section id */
+  sceneId: string;
 }
 
 interface CinemaProgramItem {
@@ -46,6 +54,8 @@ interface CinemaProgramItem {
   dynasty: string;
   scenes: CinemaScene[];
   track: BgmTrack;
+  /** 默认朗诵声线；无配音的诗为 undefined */
+  voice?: AudioVoice;
   /** 秒；0 = 元数据未就绪，先用兜底 */
   duration: number;
 }
@@ -87,12 +97,14 @@ async function buildProgram(): Promise<CinemaProgramItem[]> {
       ranked.find((t) => !used.has(t.id)) || ranked.find((t) => (used.get(t.id) || 0) < 2) || ranked[0];
     used.set(track.id, (used.get(track.id) || 0) + 1);
     const scenes: CinemaScene[] = [
-      { image: g.heroImage, caption: `${g.title} · ${g.author}` },
+      { image: g.heroImage, caption: `${g.title} · ${g.author}`, sceneId: 'hero' },
       ...g.sections
         .filter((s) => typeof s.image === 'string' && s.image.startsWith('/generated/'))
-        .map((s) => ({ image: s.image, caption: s.original })),
+        .map((s) => ({ image: s.image, caption: s.original, sceneId: s.id })),
     ];
-    return { id: g.id, title: g.title, author: g.author, dynasty: g.dynasty || '', scenes, track, duration: 0 };
+    const voice =
+      (g.audio?.voices || []).find((v) => v.id === g.audio?.defaultVoiceId) || g.audio?.voices?.[0];
+    return { id: g.id, title: g.title, author: g.author, dynasty: g.dynasty || '', scenes, track, voice, duration: 0 };
   });
 }
 
@@ -262,8 +274,8 @@ function Lobby(props: {
         </p>
         <h1 className="font-serif text-4xl md:text-5xl text-paper mb-4">放映厅</h1>
         <p className="text-silver max-w-2xl leading-relaxed">
-          每场随机排定 {MAX_POEMS} 首诗，各配一支契合情绪的背景音乐。放映时长随乐句走，
-          画面按乐句时长逐幕切换——自动放映是电影，手动欣赏是翻相册。
+          每场随机排定 {MAX_POEMS} 首诗，各配一支契合情绪的背景音乐。有朗诵的诗自动跟随人声节奏：
+          逐句念白、念完留白数秒再看下一幕——自动放映是电影，手动欣赏是翻相册。
         </p>
       </section>
 
@@ -311,8 +323,13 @@ function Lobby(props: {
                       {it.dynasty ? ` · ${it.dynasty}` : ''}
                     </p>
                   </div>
-                  <span className="hidden sm:inline text-xs text-silver/60 shrink-0">
+                  <span className="hidden sm:flex items-center gap-2 text-xs text-silver/60 shrink-0">
                     配乐 · {it.track.title}
+                    {it.voice && (
+                      <span className="inline-flex items-center gap-1 text-gold/80 border border-gold/30 rounded-full px-2 py-0.5">
+                        <Mic size={11} /> 含朗诵
+                      </span>
+                    )}
                   </span>
                 </li>
               ))}
@@ -374,7 +391,8 @@ function Lobby(props: {
             {props.mode === 'auto' ? '熄灯 · 开始放映' : '入座 · 手动欣赏'}
           </button>
           <p className="text-[11px] text-silver/50 leading-relaxed">
-            放映含背景音乐（进入后自动播放，导航栏音符可随时关闭）。朗诵人声需点击，请移步各诗的沉浸页。
+            放映含背景音乐（进入后自动播放，导航栏音符可随时关闭）。标注「含朗诵」的诗在自动放映中会逐句念白，
+            念完留白 5~10 秒再切下一幕；放映中可用麦克风按钮随时开关人声。
           </p>
         </div>
       </section>
@@ -396,6 +414,7 @@ function Theater(props: {
   const [stepIdx, setStepIdx] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
   const [displayed, setDisplayed] = useState({ poem: 0, step: 0 });
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -404,6 +423,7 @@ function Theater(props: {
   const [webglOk, setWebglOk] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const screenRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef(0);
@@ -412,13 +432,19 @@ function Theater(props: {
   displayedRef.current = displayed;
   const poemIdxRef = useRef(poemIdx);
   poemIdxRef.current = poemIdx;
+  const stepIdxRef = useRef(stepIdx);
+  stepIdxRef.current = stepIdx;
   const stepTimerRef = useRef(0);
   const poemTimerRef = useRef(0);
+  const voicePauseTimerRef = useRef(0);
   const controlsTimerRef = useRef(0);
   const playingRef = useRef(playing);
   playingRef.current = playing;
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  const voiceOnRef = useRef(voiceOn);
+  voiceOnRef.current = voiceOn;
+  const poemStartRef = useRef(0);
   const gestureRetryCleanupRef = useRef<(() => void) | null>(null);
 
   const item = program[poemIdx];
@@ -427,11 +453,17 @@ function Theater(props: {
   const displayedScene = displayed.step % displayedItem.scenes.length;
 
   const transitionDef = getTransition(props.transitionKey);
-  const totalSteps = useMemo(() => {
-    const d = item.duration || 120;
-    const rounds = Math.max(1, Math.ceil(d / (item.scenes.length * MAX_SCENE_S)));
-    return item.scenes.length * rounds;
-  }, [item]);
+  /** 片目总幕数：有配音的诗幕播一轮即收幕；无配音按 BGM 时长均分（可循环多轮） */
+  const totalStepsOf = useCallback(
+    (p: CinemaProgramItem) => {
+      if (voiceOn && p.voice) return p.scenes.length;
+      const d = p.duration || 120;
+      const rounds = Math.max(1, Math.ceil(d / (p.scenes.length * MAX_SCENE_S)));
+      return p.scenes.length * rounds;
+    },
+    [voiceOn]
+  );
+  const totalSteps = useMemo(() => totalStepsOf(item), [item, totalStepsOf]);
   const stepMs = useMemo(() => ((item.duration || 120) * 1000) / totalSteps, [item, totalSteps]);
 
   /* WebGL 初始化 */
@@ -510,7 +542,7 @@ function Theater(props: {
   const goTo = useCallback(
     (poem: number, step: number) => {
       const p = clamp(poem, 0, program.length - 1);
-      const total = program[p].scenes.length * Math.max(1, Math.ceil((program[p].duration || 120) / (program[p].scenes.length * MAX_SCENE_S)));
+      const total = totalStepsOf(program[p]);
       let s = step;
       let pp = p;
       while (s >= total) {
@@ -528,8 +560,7 @@ function Theater(props: {
           s = 0;
           break;
         }
-        const prevTotal = program[pp].scenes.length * Math.max(1, Math.ceil((program[pp].duration || 120) / (program[pp].scenes.length * MAX_SCENE_S)));
-        s += prevTotal;
+        s += totalStepsOf(program[pp]);
       }
       if (pp !== poemIdxRef.current) setPoemIdx(pp);
       setStepIdx(s);
@@ -540,7 +571,7 @@ function Theater(props: {
         if (!transitioningRef.current) runTransition(from, to);
       }
     },
-    [program, runTransition, props]
+    [program, runTransition, totalStepsOf, props]
   );
 
   const nextScene = useCallback(() => goTo(poemIdxRef.current, stepIdx + 1), [goTo, stepIdx]);
@@ -585,9 +616,9 @@ function Theater(props: {
       if (Number.isFinite(d) && d > 0) {
         const clamped = clamp(d, MIN_POEM_S, MAX_POEM_S);
         setDuration(clamped);
-        // 重排本部剩余时长（仅自动模式随乐句收幕）
+        // 重排本部剩余时长（仅自动模式随乐句收幕；有配音的诗由朗诵序列收幕）
         window.clearTimeout(poemTimerRef.current);
-        if (modeRef.current !== 'auto') return;
+        if (modeRef.current !== 'auto' || (voiceOnRef.current && item.voice)) return;
         const remaining = clamped - au.currentTime;
         poemTimerRef.current = window.setTimeout(() => {
           if (playingRef.current && poemIdxRef.current === myIdx) nextPoem();
@@ -610,14 +641,16 @@ function Theater(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poemIdx, item.track.id]);
 
-  /* 自动模式：逐幕定时 */
+  /* 自动模式：逐幕定时（有配音且当前幕有音频时交给朗诵序列驱动） */
   useEffect(() => {
     window.clearTimeout(stepTimerRef.current);
     if (mode !== 'auto' || !playing) return;
+    const it = program[poemIdx];
+    const sc = it.scenes[stepIdx % it.scenes.length];
+    if (voiceOn && it.voice?.scenes[sc.sceneId]) return;
     stepTimerRef.current = window.setTimeout(() => {
       const next = stepIdx + 1;
-      const total = program[poemIdxRef.current].scenes.length * Math.max(1, Math.ceil((program[poemIdxRef.current].duration || 120) / (program[poemIdxRef.current].scenes.length * MAX_SCENE_S)));
-      if (next >= total) {
+      if (next >= totalStepsOf(it)) {
         nextPoem();
       } else {
         setStepIdx(next);
@@ -628,11 +661,79 @@ function Theater(props: {
       }
     }, stepMs);
     return () => window.clearTimeout(stepTimerRef.current);
-  }, [mode, playing, stepIdx, stepMs, program, runTransition, nextPoem]);
+  }, [mode, playing, stepIdx, stepMs, program, poemIdx, voiceOn, totalStepsOf, runTransition, nextPoem]);
+
+  /* 朗诵驱动：画面落定后播该幕音频，念完按诗句长度留白 5~10s 再切下一幕 */
+  useEffect(() => {
+    const v = voiceRef.current;
+    window.clearTimeout(voicePauseTimerRef.current);
+    if (!v) return;
+    v.pause();
+    if (!(mode === 'auto' && playingRef.current && voiceOnRef.current)) return;
+    const it = program[displayed.poem];
+    const sc = it.scenes[displayed.step % it.scenes.length];
+    const url = it.voice?.scenes[sc.sceneId];
+    if (!url) return;
+    const delay = displayed.step === 0 ? Math.max(0, INTRO_MS - (performance.now() - poemStartRef.current)) : 0;
+    const t = window.setTimeout(() => {
+      v.src = url;
+      v.volume = 1;
+      v.play().catch(() => {});
+    }, delay);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(voicePauseTimerRef.current);
+    };
+  }, [displayed, mode, playing, voiceOn, program]);
+
+  const advanceAfterVoice = useCallback(() => {
+    if (!(modeRef.current === 'auto' && playingRef.current && voiceOnRef.current)) return;
+    const it = program[poemIdxRef.current];
+    const idx = stepIdxRef.current;
+    const next = idx + 1;
+    if (next >= totalStepsOf(it)) {
+      nextPoem();
+      return;
+    }
+    setStepIdx(next);
+    const from = displayedRef.current;
+    const to = { poem: poemIdxRef.current, step: next };
+    setDisplayed(to);
+    if (!transitioningRef.current) runTransition(from, to);
+  }, [program, totalStepsOf, runTransition, nextPoem]);
+
+  /* 朗诵音频结束/失败 → 留白后推进 */
+  useEffect(() => {
+    const v = voiceRef.current;
+    if (!v) return;
+    const pauseFor = () => {
+      const it = program[poemIdxRef.current];
+      const sc = it.scenes[stepIdxRef.current % it.scenes.length];
+      return VOICE_PAUSE_BASE_MS + Math.min(VOICE_PAUSE_MAX_EXTRA, sc.caption.length * VOICE_PAUSE_PER_CHAR);
+    };
+    const onEnded = () => {
+      if (!(modeRef.current === 'auto' && playingRef.current && voiceOnRef.current)) return;
+      window.clearTimeout(voicePauseTimerRef.current);
+      voicePauseTimerRef.current = window.setTimeout(advanceAfterVoice, pauseFor());
+    };
+    const onError = () => {
+      if (!(modeRef.current === 'auto' && playingRef.current && voiceOnRef.current)) return;
+      window.clearTimeout(voicePauseTimerRef.current);
+      voicePauseTimerRef.current = window.setTimeout(advanceAfterVoice, VOICE_PAUSE_BASE_MS);
+    };
+    v.addEventListener('ended', onEnded);
+    v.addEventListener('error', onError);
+    return () => {
+      v.removeEventListener('ended', onEnded);
+      v.removeEventListener('error', onError);
+      window.clearTimeout(voicePauseTimerRef.current);
+    };
+  }, [program, advanceAfterVoice]);
 
   /* 片头卡 */
   useEffect(() => {
     setShowIntro(true);
+    poemStartRef.current = performance.now();
     const t = window.setTimeout(() => setShowIntro(false), INTRO_MS);
     return () => window.clearTimeout(t);
   }, [poemIdx]);
@@ -681,21 +782,44 @@ function Theater(props: {
 
   const togglePlay = useCallback(() => {
     const au = audioRef.current;
+    const v = voiceRef.current;
     setPlaying((prev) => {
       const next = !prev;
       if (au) {
         if (next) au.play().catch(() => {});
         else au.pause();
       }
+      if (v) {
+        if (next) {
+          if (v.ended) advanceAfterVoice();
+          else v.play().catch(() => {});
+        } else {
+          v.pause();
+          window.clearTimeout(voicePauseTimerRef.current);
+        }
+      }
       return next;
     });
-  }, []);
+  }, [advanceAfterVoice]);
 
   const toggleMute = useCallback(() => {
     const au = audioRef.current;
+    const v = voiceRef.current;
     setMuted((prev) => {
       if (au) au.muted = !prev;
+      if (v) v.muted = !prev;
       return !prev;
+    });
+  }, []);
+
+  const toggleVoice = useCallback(() => {
+    setVoiceOn((prev) => {
+      const next = !prev;
+      if (!next) {
+        voiceRef.current?.pause();
+        window.clearTimeout(voicePauseTimerRef.current);
+      }
+      return next;
     });
   }, []);
 
@@ -830,6 +954,16 @@ function Theater(props: {
             <button onClick={toggleMute} className="p-2 text-silver hover:text-paper" title="静音 (M)" aria-label="静音">
               {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
+            {item.voice && (
+              <button
+                onClick={toggleVoice}
+                className="p-2 text-silver hover:text-paper"
+                title={voiceOn ? '关闭朗诵人声' : '开启朗诵人声'}
+                aria-label={voiceOn ? '关闭朗诵人声' : '开启朗诵人声'}
+              >
+                {voiceOn ? <Mic size={18} /> : <MicOff size={18} />}
+              </button>
+            )}
             <button onClick={enterFullscreen} className="p-2 text-silver hover:text-paper" title="全屏" aria-label="全屏">
               <Maximize size={17} />
             </button>
@@ -887,6 +1021,7 @@ function Theater(props: {
       </div>
 
       <audio ref={audioRef} preload="auto" />
+      <audio ref={voiceRef} preload="auto" />
     </div>
   );
 }

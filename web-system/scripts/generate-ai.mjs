@@ -248,7 +248,9 @@ function runDoubaoImage(prompt, out) {
   const r = spawnSync('doubao-cli', ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '0', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
   const src = path.join(tmp, 'cover.jpeg');
   if (r.status !== 0 || !fs.existsSync(src)) {
-    console.error('doubao-cli 输出:', (r.stderr || r.stdout || '').slice(-400));
+    const errOutput = (r.stderr || r.stdout || '').slice(-400);
+    console.error('doubao-cli 输出:', errOutput || '(空)');
+    console.error('doubao-cli status:', r.status, 'signal:', r.signal, 'error:', r.error?.message || '(无)');
     try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
     fail(`生图失败 ${out}（doubao）`);
   }

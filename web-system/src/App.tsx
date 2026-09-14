@@ -38,6 +38,15 @@ function AmbientBgmToggle() {
   );
 }
 
+// SPA 路由切换时回到页面顶部（如从画廊进入诗作详情）
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 // SPA 路由变化时向 Umami 上报 pageview（script.js 首次加载会自行上报初始页）
 function RouteTracker() {
   const { pathname } = useLocation();
@@ -102,6 +111,7 @@ function Nav() {
 export default function App() {
   return (
     <div className="min-h-screen bg-ink">
+      <ScrollToTop />
       <RouteTracker />
       <AmbientBgm />
       <Nav />

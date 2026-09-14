@@ -28,7 +28,7 @@ while IFS=$'\t' read -r title tags; do
       break
     fi
     echo "[$(date +%H:%M:%S)] ERR $title attempt $attempt" >> "$LOG"
-    sleep 20
+    sleep 65
   done
   [ "$ok" = 0 ] && echo "[$(date +%H:%M:%S)] GIVEUP $title" >> "$LOG"
 done < "$LIST"

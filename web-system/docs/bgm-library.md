@@ -15,7 +15,7 @@
 
 Suno clip 的 `metadata.tags` 里嵌入了完整 style 提示词，与 guide 中各族的提示词逐一比对即可确认归属（不用靠生成的英文名猜）。入库前按 guide 验收清单过一遍：无哼唱/无人声、前奏 ≤10 秒、情绪合族、同族候选气质有区分。
 
-## 已入库（48 首，截至 2026-09-10）
+## 已入库（68 首，截至 2026-09-11）
 
 每族第 1 首的两个候选，clip ID 用于追溯/重新下载（2026-09-09 新增 18 首的 clip ID 见下「未生成」勾选行）：
 
@@ -70,19 +70,20 @@ bgm-daowang-02   a2729605-b19d-4ef3-b124-32d434a3f864
 - [x] 族4：仗剑天涯 → `bgm-jianghu-03/04`（83ead337-00c5-42ab-87f1-979ca5f08c37, 51c113d2-27ab-4b48-a3cc-3e872a025a50）；山一程水一程 → `bgm-jianghu-05/06`（f032eee1-cfed-42b8-96b6-936431f9399d, 4ac8039e-94e6-40ae-be7a-e55c453920b2）
 - [x] 族5：铁马冰河 → `bgm-biansai-03/04`（08904307-e06d-4be7-90aa-639917e2d0f5, 26214a5c-c088-4dd7-9ae7-af901ed249ec）；长河落日 → `bgm-biansai-05/06`（b7aeed47-81ce-4ce0-879c-ce7620577680, f09a6cde-40bf-4ad6-a6ba-41e18fa6b54f）
 - [x] 族6：大江东去 → `bgm-huaigu-03/04`（7f7cadda-8b0a-4cf4-b745-f87da923826c, 0ea12b89-5956-46ad-92e4-499d0c295bcf）；六朝旧事 → `bgm-huaigu-05/06`（2ed1bcb9-d12a-4da0-a24b-e16bc207caf8, 10d40d1d-9218-48e6-8944-13daf611fec8）
-- [ ] 族7：一蓑烟雨任平生 → `bgm-haofang-03(/04)`；把酒问青天 → `bgm-haofang-05(/06)`
-- [ ] 族8：执手相看泪眼 → `bgm-wanxiang-03(/04)`；一种相思 → `bgm-wanxiang-05(/06)`
-- [ ] 族9：薄雾浓云 → `bgm-chungui-03(/04)`；知否知否 → `bgm-chungui-05(/06)`
+- [x] 族7：一蓑烟雨任平生 → `bgm-haofang-03/04`（e689ced6-824d-4a92-ae5b-977ec67bd5f8, 11319e0e-4ae5-4e09-ab88-55daf92c8b76）；把酒问青天 → `bgm-haofang-05/06`（191cdd4a-8d87-4190-8822-2e3758a55b2d, dd52640c-a55d-46c7-9dc3-22371b0495b1）
+- [x] 族8：执手相看泪眼 → `bgm-wanxiang-03/04`（b28068e6-66a5-4113-861a-1b5a1e36bc61, c7873a4d-ee3a-41fa-9664-2af1804319cc）；一种相思 → `bgm-wanxiang-05/06`（753f4d96-299a-4b6e-88d9-b9db693cd421, e815e295-8a02-4316-8e7e-afdaba779de3）
+- [x] 族9：薄雾浓云 → `bgm-chungui-03/04`（6db6e2e2-9f11-459f-a3af-dd64c113594e, 6697160d-54ac-4451-8a67-1951996dab25）；知否知否 → `bgm-chungui-05/06`（9b8477e4-0e86-4f7f-953f-070337b22a5b, ab86b21f-ed01-4d8b-82bf-d6c644a51b8d）
 - [x] 族10：烛影摇红 → `bgm-daowang-03/04`（8407c56f-ce9b-4f04-8df9-232937cc563b, 38770810-a80c-44b7-b87e-e0323a5d5baf）
-- [ ] 族11（全新）：曲径通幽 → `bgm-chan-01/02`（43adc3cf-60dc-4931-97cb-8ebf293777be, 33ac8f62-3a13-4eec-8395-eb855d0d8bf6）✓；云在青天 → `bgm-chan-03(/04)`；本来无一物 → `bgm-chan-05(/06)`
-- [ ] 族12（全新）：长亭古道 → `bgm-songbie-01(/02)`；孤帆远影 → `bgm-songbie-03(/04)`；暗香疏影 → `bgm-songbie-05(/06)`；人生得意 → `bgm-songbie-07(/08)`
+- [x] 族11（全新）：曲径通幽 → `bgm-chan-01/02`（43adc3cf-60dc-4931-97cb-8ebf293777be, 33ac8f62-3a13-4eec-8395-eb855d0d8bf6）；云在青天 → `bgm-chan-03/04`（1d598a7d-564f-4f64-96d7-258adc5eb3eb, afb733a6-ebaa-4636-9f02-2f01dbbfa23b）；本来无一物 → `bgm-chan-05/06`（ceb1e369-bb01-4010-83c4-6ff4b4c497cf, 9f92d8ed-1d4c-45d1-a753-27cbb6b7e805）
+- [ ] 族12（全新）：长亭古道 → `bgm-songbie-01/02`（57261a3b-dd39-4a46-8949-ad3ba64e55a8, 61809a65-0892-411e-a099-e9169e6edd13）✓；孤帆远影 → `bgm-songbie-03/04`（cab8001b-f253-4d9c-9f6d-c624f28c4daf, 43a8c4dc-e87c-4a21-a2ea-225da2c93dad）✓；暗香疏影 → `bgm-songbie-05(/06)`；人生得意 → `bgm-songbie-07(/08)`
 
 > 族 11、12 的拼音前缀现定 `chan`（禅意）、`songbie`（送别咏物节庆），入库时写入 bgm.json 的 family 字段。
 >
 > 2026-09-09/10 进展：两日共入库 28 首（族1-6 各 4-6 首 + 族10 烛影摇红 + 族11 曲径通幽），库内共 48 首。
-> 2026-09-09 计划 12 提示词已全部完成；**剩余 12 个提示词（24 首）**：族7（一蓑烟雨任平生/把酒问青天）、
-> 族8（执手相看泪眼/一种相思）、族9（薄雾浓云/知否知否）、族11（云在青天/本来无一物）、
-> 族12（长亭古道/孤帆远影/暗香疏影/人生得意）。
+> 2026-09-11 进展：入库 20 首（一蓑烟雨任平生/一种相思/薄雾浓云/知否知否/长亭古道/把酒问青天/
+> 执手相看泪眼/云在青天/本来无一物/孤帆远影），库内共 68 首。后半 10 首为人工网页版生成后回填。
+> 批跑 TSV 里的编号是生成批次号，**入库编号按曲名顺延**（如批次「wanxiang-04-一种相思」入库为 `bgm-wanxiang-05/06`）。
+> **剩余 2 个提示词（4 首，均属族12 送别）**：暗香疏影 → `bgm-songbie-05(/06)`、人生得意 → `bgm-songbie-07(/08)`。
 > 批跑命令：`SUNO_MODEL=chirp-goose bash scripts/batch-suno-bgm.sh <tsv清单> [日志路径]`
 > （模型必须 chirp-goose=v6-mini；清单已备好：`logs/suno-bgm-tomorrow.tsv`；每提示词出 2-4 候选取前 2）。
 >
@@ -92,13 +93,18 @@ bgm-daowang-02   a2729605-b19d-4ef3-b124-32d434a3f864
 > 内存耗尽是大量超时的根因，批跑须用独立端口（9255）+ 每次清场 + `killpg` 回收整棵进程树；
 > ④ Chrome `--proxy-server` 只认 `socks5://`，`socks5h://` 会报 ERR_NO_SUPPORTED_PROXIES；
 > ⑤ 2026-09-10 起账号仅 v6-mini 有权限（mv=`chirp-goose`），`chirp-auk(-turbo)` 一律 403 free_upsell；
-> ⑥ hCaptcha 对短时间高频请求会升级人工挑战，失败重试须留间隔（≥1 分钟），与网页版生成限流一致。
+> ⑥ hCaptcha 对短时间高频请求会升级人工挑战，失败重试须留间隔（≥1 分钟），与网页版生成限流一致
+> （脚本内重试间隔已从 20s 调到 65s）；
+> ⑦ 2026-09-11 实测：hCaptcha 对脚本批次请求频繁返回 `challenge-error`/`network-error`，单轮 12 提示词
+> 仅 5 个成功，连续多轮重跑也大面积失败——遇此情况改为人工在网页版分时段生成，clip ID 回填本文。
 
-## 明天续作步骤
+## 续作步骤（剩余 7 提示词）
 
 1. `SUNO_MODEL=chirp-goose bash scripts/batch-suno-bgm.sh logs/suno-bgm-tomorrow.tsv logs/suno-bgm-day3.log`
-   （每提示词出 2-4 候选；hCaptcha 高频会弹人工挑战，脚本已带 3 次重试+清场，失败项可再跑一遍同一命令，done 清单自动跳过已完成）
+   （hCaptcha 高频会弹人工挑战；若连续失败见上方备忘 ⑦，改人工网页版生成）
 2. `cli-anything-suno clip download <id>...` 取每提示词前 2 个候选，命名 `bgm-<族>-<序号>.m4a` 放入 `public/audio/bgm/`
-3. 更新 `bgm.json`（family：豪放/婉约相思/春愁闺怨/禅意/送别咏物节庆）与本文两张表
+   （**入库编号按曲名顺延**：把酒问青天→haofang-05/06、执手相看泪眼→wanxiang-03/04、云在青天→chan-03/04、
+   本来无一物→chan-05/06、孤帆远影→songbie-03/04、暗香疏影→songbie-05/06、人生得意→songbie-07/08）
+3. 更新 `bgm.json`（family：豪放/婉约相思/禅意/送别咏物节庆）与本文两张表
 4. 36 提示词全量完成后可按 guide「长短版控制」给每族代表款做 30-60s 短版循环（ffmpeg 截取中段 + 交叉淡化）
 5. `bash sync-public.sh push`

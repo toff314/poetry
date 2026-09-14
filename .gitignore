@@ -19,3 +19,8 @@ cover.jpeg
 
 # 运行时日志与批处理记录
 web-system/logs/
+
+# 生成过程产物/浏览器自动化残留，不入产物仓
+web-system/data/suno-genone-profile/
+web-system/data/bgm-dl/
+web-system/data/bgmjs/
