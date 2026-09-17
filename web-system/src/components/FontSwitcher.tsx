@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Type, Check } from 'lucide-react';
 
+/**
+ * 字体风格切换：10 款中文字体全部随源码内置（src/assets/fonts/*.woff2，GB2312 常用字集子集）。
+ * 选择结果写入 <html data-font="key">，由 index.css 的 html[data-font='key'] 驱动 --font-poem。
+ */
 const FONTS = [
   {
     key: 'serif',
@@ -14,7 +18,7 @@ const FONTS = [
     name: '霞鹜文楷',
     eng: 'LXGW WenKai',
     desc: '手写楷体 · 书卷气',
-    family: "'LXGW WenKai', 'Kaiti SC', KaiTi, 'STKaiti', serif",
+    family: "'LXGW WenKai', 'Kaiti SC', 'KaiTi', 'STKaiti', serif",
   },
   {
     key: 'hei',
@@ -22,6 +26,55 @@ const FONTS = [
     eng: 'Noto Sans SC',
     desc: '现代明快 · 中性',
     family: "'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  {
+    key: 'mashan',
+    name: '马善政毛笔楷书',
+    eng: 'Ma Shan Zheng',
+    desc: '毛笔 · 书法',
+    family: "'Ma Shan Zheng', 'Kaiti SC', KaiTi, cursive",
+  },
+  {
+    key: 'xiaowei',
+    name: '站酷小薇',
+    eng: 'ZCOOL XiaoWei',
+    desc: '清秀宋 · 纤细',
+    family: "'ZCOOL XiaoWei', 'Songti SC', SimSun, serif",
+  },
+  {
+    key: 'kuaile',
+    name: '站酷快乐体',
+    eng: 'ZCOOL KuaiLe',
+    desc: '圆润活泼 · 轻松',
+    family: "'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  {
+    key: 'wqyhei',
+    name: '文泉驿微米黑',
+    eng: 'WQY Micro Hei',
+    desc: '开源黑体 · 通用',
+    family: "'WQY Micro Hei', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  {
+    key: 'wqyzen',
+    name: '文泉驿正黑',
+    eng: 'WQY Zen Hei',
+    desc: '开源黑体 · 饱满',
+    family: "'WQY Zen Hei', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  {
+    key: 'wqysharp',
+    name: '文泉驿点阵正黑',
+    eng: 'WQY Zen Hei Sharp',
+    desc: '点阵 · 复古屏显',
+    family: "'WQY Zen Hei Sharp', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  {
+    key: 'droid',
+    name: 'Droid Sans Fallback',
+    eng: 'Droid Sans Fallback',
+    desc: '安卓回退 · 极简',
+    family: "'Droid Sans Fallback', 'PingFang SC', 'Microsoft YaHei', sans-serif",
   },
 ];
 
@@ -80,43 +133,46 @@ export default function FontSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+12px)] z-[80] w-80 md:w-96 origin-top-right">
+        <div className="absolute right-0 top-[calc(100%+12px)] z-[80] w-[19rem] md:w-[24rem] origin-top-right">
           <div className="rounded-xl border border-darkline bg-ink-light shadow-2xl shadow-black/50 overflow-hidden">
-            <div className="px-5 pt-4 pb-1 flex items-baseline justify-between">
+            <div className="px-4 pt-3.5 pb-1 flex items-baseline justify-between">
               <p className="text-xs tracking-[0.25em] text-gold uppercase">字体风格</p>
               <p className="text-[10px] text-silver/60">点击即应用 · 本机保存</p>
             </div>
-            <div className="p-3 space-y-2 max-h-[70vh] overflow-y-auto">
+            <div className="p-2.5 space-y-1.5 max-h-[70vh] overflow-y-auto">
               {FONTS.map((f) => {
                 const isActive = f.key === active;
                 return (
                   <button
                     key={f.key}
                     onClick={() => choose(f.key)}
-                    className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                    title={f.eng}
+                    className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
                       isActive
                         ? 'border-gold/70 bg-gold/5'
                         : 'border-darkline hover:border-silver/50 bg-ink/40'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="flex items-baseline gap-2">
-                        <span className="text-paper font-medium text-sm">{f.name}</span>
-                        <span className="text-[9px] tracking-wider text-silver/60 uppercase">{f.eng}</span>
-                      </span>
-                      {isActive && <Check size={15} className="text-gold shrink-0" />}
+                    {/* 第一行：字体名 + 说明（原 3 行信息压缩为 2 行） */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-paper font-medium text-[13px] shrink-0">{f.name}</span>
+                      <span className="text-[10px] text-silver/65 truncate flex-1 min-w-0">{f.desc}</span>
+                      {isActive && <Check size={14} className="text-gold shrink-0" />}
                     </div>
+                    {/* 第二行：字体样例 */}
                     <p
-                      className="font-serif text-base text-paper/90 leading-relaxed"
+                      className="font-serif text-[15px] leading-snug text-paper/85 truncate"
                       style={{ fontFamily: f.family }}
                     >
                       {SAMPLE}
                     </p>
-                    <p className="text-[11px] text-silver/70 mt-1">{f.desc}</p>
                   </button>
                 );
               })}
             </div>
+            <p className="px-4 pb-3 pt-1 text-[10px] text-silver/50">
+              共 {FONTS.length} 款内置字体 · 首次切换按需加载对应字型
+            </p>
           </div>
         </div>
       )}

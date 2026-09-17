@@ -1,3 +1,76 @@
+/* ── 内置中文字体（随源码发布，GB2312 常用字集子集，woff2）──────────────
+   以下 10 款字体文件位于 src/assets/fonts/，由 Vite 打包；切换见 html[data-font]。 */
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/NotoSerifSC-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/LXGWWenKai-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/NotoSansSC-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/MaShanZheng-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'ZCOOL XiaoWei';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/ZCOOLXiaoWei-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'ZCOOL KuaiLe';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/ZCOOLKuaiLe-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'WQY Micro Hei';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/WQYMicroHei.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'WQY Zen Hei';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/WQYZenHei.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'WQY Zen Hei Sharp';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/WQYZenHeiSharp.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Droid Sans Fallback';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/DroidSansFallback.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,12 +81,36 @@
   --font-poem: 'Noto Serif SC', 'Songti SC', SimSun, serif;
 }
 
-/* 字体风格切换：由 FontSwitcher 设置 <html data-font=...> */
+/* 字体风格切换：由 FontSwitcher 设置 <html data-font=...>（10 款内置中文字体） */
+html[data-font='serif'] {
+  --font-poem: 'Noto Serif SC', 'Songti SC', SimSun, serif;
+}
 html[data-font='kai'] {
   --font-poem: 'LXGW WenKai', 'Kaiti SC', 'KaiTi', 'STKaiti', serif;
 }
 html[data-font='hei'] {
   --font-poem: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font='mashan'] {
+  --font-poem: 'Ma Shan Zheng', 'Kaiti SC', KaiTi, cursive;
+}
+html[data-font='xiaowei'] {
+  --font-poem: 'ZCOOL XiaoWei', 'Songti SC', SimSun, serif;
+}
+html[data-font='kuaile'] {
+  --font-poem: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font='wqyhei'] {
+  --font-poem: 'WQY Micro Hei', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font='wqyzen'] {
+  --font-poem: 'WQY Zen Hei', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font='wqysharp'] {
+  --font-poem: 'WQY Zen Hei Sharp', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+html[data-font='droid'] {
+  --font-poem: 'Droid Sans Fallback', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 html {
