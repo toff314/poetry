@@ -26,7 +26,8 @@ export default function AmbientBgm() {
     const onGesture = () => {
       if (interacted.current) return;
       interacted.current = true;
-      if (!window.location.pathname.startsWith('/poem/')) startAmbientBgm();
+      const p = window.location.pathname;
+      if (!p.startsWith('/poem/') && !p.startsWith('/cinema')) startAmbientBgm();
     };
     window.addEventListener('pointerdown', onGesture, { once: true });
     window.addEventListener('keydown', onGesture, { once: true });

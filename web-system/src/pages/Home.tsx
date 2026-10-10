@@ -163,15 +163,20 @@ export default function Home() {
       <section className="relative h-screen min-h-[680px] flex items-center overflow-hidden">
         {/* 背景：站内 AI 封面轮播；无封面时诗性渐变 */}
         {heroBgPool.length > 0
-          ? heroBgPool.map((src, i) => (
-              <div
-                key={src}
-                className={`absolute inset-0 transition-opacity duration-1000 ${i === bgIndex ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img src={src} alt="" className={`w-full h-full object-cover ${i === bgIndex ? 'hero-kb' : ''}`} />
-                <div className="absolute inset-0 image-overlay" />
-              </div>
-            ))
+          ? heroBgPool.map((src, i) => {
+              // 懒挂载：只保留当前与下一张（8s 轮换，下一张挂载后即开始加载）
+              const d = (i - bgIndex + heroBgPool.length) % heroBgPool.length;
+              if (d > 1) return null;
+              return (
+                <div
+                  key={src}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${i === bgIndex ? 'opacity-100' : 'opacity-0'}`}
+                >
+                  <img src={src} alt="" decoding="async" className={`w-full h-full object-cover ${i === bgIndex ? 'hero-kb' : ''}`} />
+                  <div className="absolute inset-0 image-overlay" />
+                </div>
+              );
+            })
           : (
             <div className="absolute inset-0" style={{ background: GRADIENTS[bgIndex % GRADIENTS.length] }}>
               <div className="absolute inset-0 image-overlay" />
@@ -224,7 +229,7 @@ export default function Home() {
               className="group block overflow-hidden rounded-xl border border-white/10 hover:border-gold/40 transition-colors"
             >
               <div className="relative aspect-video overflow-hidden">
-                <img src={heroHint.cover} alt={heroHint.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <img src={heroHint.cover} alt={heroHint.title} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                 <p className="absolute top-3 left-4 text-[10px] tracking-[0.25em] text-gold uppercase">正在放映</p>
                 <div className="absolute bottom-0 inset-x-0 p-4">
@@ -279,6 +284,7 @@ export default function Home() {
                       src={g.cover}
                       alt={g.title}
                       loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-90" />
@@ -426,7 +432,7 @@ export default function Home() {
                   >
                     <div className="relative aspect-[4/5] rounded-xl overflow-hidden border border-darkline bg-ink-light/60 group-hover:border-gold/50 transition-all">
                       {p.main?.img ? (
-                        <img src={p.main.img} alt={p.name} loading="lazy"
+                        <img src={p.main.img} alt={p.name} loading="lazy" decoding="async"
                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2a2218] to-[#3d2c18]">

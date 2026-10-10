@@ -378,10 +378,19 @@ app.get('/api/video/:id', (req, res) => {
   }
 });
 
-app.get('/api/generated', (_req, res) => {
+app.get('/api/generated', (req, res) => {
   try {
     const index = getGeneratedIndex();
-    const poems = (index.poems || []).map((p) => {
+    let all = index.poems || [];
+    const total = all.length;
+    const authors = Array.from(new Set(all.map((p) => p.author || '未知')));
+    const author = typeof req.query.author === 'string' && req.query.author ? req.query.author : '';
+    if (author) all = all.filter((p) => (p.author || '未知') === author);
+    const filteredTotal = all.length;
+    const offset = Math.max(0, Number.parseInt(req.query.offset, 10) || 0);
+    const limitRaw = Number.parseInt(req.query.limit, 10);
+    const slice = Number.isFinite(limitRaw) && limitRaw > 0 ? all.slice(offset, offset + limitRaw) : all;
+    const poems = slice.map((p) => {
       let hasArt = false;
       let cover = '';
       let line = '';
@@ -404,7 +413,7 @@ app.get('/api/generated', (_req, res) => {
       }
       return { ...p, hasArt, cover, line, dynasty };
     });
-    res.json({ poems });
+    res.json({ poems, total, filteredTotal, authors });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

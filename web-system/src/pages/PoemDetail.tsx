@@ -74,6 +74,12 @@ export default function PoemDetail() {
   const timerRef = useRef<number | null>(null);
   const stepRef = useRef(0);
   const segRef = useRef(0);
+  const ignoreScrollUntilRef = useRef(0);
+  /** 自动放映显式切场景：直接定 activeIndex，并在 1.5s 内忽略 scroll 中间帧，避免交叉淡入闪回 */
+  const setScene = useCallback((index: number) => {
+    ignoreScrollUntilRef.current = Date.now() + 1500;
+    setActiveIndex(index);
+  }, []);
   const poemRef = useRef(poem);
   poemRef.current = poem;
 
@@ -189,6 +195,7 @@ export default function PoemDetail() {
 
   useEffect(() => {
     const handleScroll = () => {
+      if (Date.now() < ignoreScrollUntilRef.current) return; // 自动放映刚显式切过场景，忽略 smooth scroll 中间帧
       const sections = document.querySelectorAll<HTMLElement>('[data-scene]');
       let closest = 0;
       let minDist = Infinity;
@@ -205,6 +212,19 @@ export default function PoemDetail() {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [poem]);
+
+  /* 懒加载：窗口外 upcoming 场景图低优先级预取（当前+后3张已在 DOM 中加载） */
+  useEffect(() => {
+    const p = poemRef.current;
+    if (!p) return;
+    const urls = [p.heroImage, ...p.sections.map((s) => s.image)];
+    urls.slice(activeIndex + 3, activeIndex + 8).forEach((u) => {
+      if (!u) return;
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = u;
+    });
+  }, [activeIndex, poem]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -255,6 +275,7 @@ export default function PoemDetail() {
         playSeg(index + 1);
         return;
       }
+      setScene(index); // 显式切换，不依赖 scroll 事件（移动端/后台 smooth scroll 可能不派发）
       scrollToScene(sceneAttr(sceneId));
       au.src = url;
       au.play().then(() => setMode('playing')).catch(() => setMode('idle'));
@@ -264,6 +285,7 @@ export default function PoemDetail() {
 
   const startPlayback = useCallback(() => {
     setMode('playing');
+    setScene(0);
     scrollToScene('0');
     if (bgmOn) playBgm();
     window.setTimeout(() => playSeg(0), 120);
@@ -273,6 +295,7 @@ export default function PoemDetail() {
   const startSilent = useCallback(() => {
     const total = (poemRef.current?.sections.length ?? 0) + 1;
     stepRef.current = 0;
+    setScene(0);
     scrollToScene('0');
     if (bgmOn) playBgm();
     clearTimer();
@@ -282,6 +305,7 @@ export default function PoemDetail() {
         stopAll();
         return;
       }
+      setScene(stepRef.current);
       scrollToScene(String(stepRef.current));
     }, SILENT_STEP_MS);
   }, [bgmOn, playBgm, clearTimer, stopAll]);
@@ -553,19 +577,24 @@ export default function PoemDetail() {
   return (
     <div className="relative">
       <DanmakuLayer poemId={id || ''} />
-      <audio ref={audioRef} preload="auto" />
-      <audio ref={bgmRef} preload="auto" loop />
+      <audio ref={audioRef} preload="none" />
+      <audio ref={bgmRef} preload="none" loop />
 
-      {/* Fixed image stage */}
+      {/* Fixed image stage：懒挂载 —— 只渲染当前幕前后共 4 张，其余随播放进度预取 */}
       <div ref={stageRef} className="fixed inset-0 z-0 bg-ink">
-        {allImages.map((src, i) => (
-          <img
-            key={src + i}
-            src={src}
-            alt=""
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === activeIndex ? 'opacity-100 hero-kb' : 'opacity-0'}`}
-          />
-        ))}
+        {allImages.map((src, i) => {
+          if (i < activeIndex - 1 || i > activeIndex + 2) return null;
+          return (
+            <img
+              key={src + i}
+              src={src}
+              alt=""
+              decoding="async"
+              fetchPriority={i <= activeIndex + 1 ? 'high' : 'low'}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ${i === activeIndex ? 'opacity-100 hero-kb' : 'opacity-0'}`}
+            />
+          );
+        })}
         <div className="absolute inset-0 image-overlay" />
       </div>
 

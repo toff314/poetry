@@ -1,5 +1,5 @@
 import SiteFooter from '../components/SiteFooter';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Play, ArrowRight, Calendar, BookOpen } from 'lucide-react';
 import { getGeneratedIndex, getRankings, tagText, type RankInfo } from '../lib/api';
@@ -15,6 +15,8 @@ const PALETTES: [string, string][] = [
   ['#0a0a0b', '#243a2a'],
 ];
 
+const PAGE_SIZE = 12;
+
 function hashIdx(s: string, n: number): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -24,25 +26,60 @@ function hashIdx(s: string, n: number): number {
 
 export default function Gallery() {
   const [items, setItems] = useState<GeneratedSummary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [authors, setAuthors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [author, setAuthor] = useState('');
   const [viewing, setViewing] = useState<GeneratedSummary | null>(null);
   const [rankMap, setRankMap] = useState<Record<string, RankInfo>>({});
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const stateRef = useRef({ items, loading, loadingMore, author });
+  stateRef.current = { items, loading, loadingMore, author };
+
+  const loadPage = useCallback(async (offset: number, poet: string) => {
+    const res = await getGeneratedIndex({ offset, limit: PAGE_SIZE, author: poet });
+    setTotal((prev) => (offset === 0 ? (res.filteredTotal ?? res.poems.length) : prev));
+    if (offset === 0 && res.authors) setAuthors(res.authors);
+    setItems((prev) => {
+      const merged = offset === 0 ? res.poems : [...prev, ...res.poems];
+      const seen = new Set<string>();
+      return merged.filter((g) => (seen.has(g.id) ? false : (seen.add(g.id), true)));
+    });
+    return res.poems.length;
+  }, []);
 
   useEffect(() => {
-    getGeneratedIndex()
-      .then((res) => setItems(res?.poems || []))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    setLoading(true);
+    setItems([]);
+    loadPage(0, author)
+      .catch(() => { if (!cancelled) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [author, loadPage]);
+
+  useEffect(() => {
     getRankings().then(setRankMap).catch(() => setRankMap({}));
   }, []);
 
-  const authors = useMemo(() => Array.from(new Set(items.map((g) => g.author || '未知'))), [items]);
+  const hasMore = items.length < total;
 
-  const shown = useMemo(
-    () => (author ? items.filter((g) => (g.author || '未知') === author) : items),
-    [items, author]
-  );
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      const s = stateRef.current;
+      if (s.loading || s.loadingMore || s.items.length >= (total || Infinity)) return;
+      setLoadingMore(true);
+      loadPage(s.items.length, s.author).finally(() => setLoadingMore(false));
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loadPage, total, loading]);
+
+  const shown = useMemo(() => items, [items]);
 
   return (
     <div className="min-h-screen bg-ink pb-24">
@@ -64,7 +101,7 @@ export default function Gallery() {
               去诗词库制作新沉浸页
             </Link>
             <span className="text-xs text-silver/70">
-              已收录 {items.length} 部{items.filter((g) => g.hasArt).length > 0 ? ` · 含实景封面 ${items.filter((g) => g.hasArt).length} 部` : ''}
+              已收录 {total} 部{items.filter((g) => g.hasArt).length > 0 ? ` · 已加载含实景封面 ${items.filter((g) => g.hasArt).length} 部` : ''} · 滚动自动加载
             </span>
           </div>
         </div>
@@ -132,6 +169,7 @@ export default function Gallery() {
                         src={g.cover}
                         alt={g.title}
                         loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
@@ -203,6 +241,22 @@ export default function Gallery() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* 懒加载哨兵 + 加载更多骨架 */}
+        {shown.length > 0 && (
+          <div ref={sentinelRef} className="mt-8">
+            {loadingMore && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="aspect-[16/10] bg-ink-light border border-darkline rounded-xl animate-pulse" />
+                ))}
+              </div>
+            )}
+            {!hasMore && !loadingMore && (
+              <p className="text-center text-xs text-silver/40 pt-4">— 已加载全部 {total} 部 —</p>
+            )}
           </div>
         )}
 

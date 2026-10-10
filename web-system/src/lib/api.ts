@@ -119,8 +119,20 @@ export interface GeneratedSummary {
   dynasty?: string;
 }
 
-export async function getGeneratedIndex(): Promise<{ poems: GeneratedSummary[] }> {
-  return fetchJson('/generated');
+export interface GeneratedIndex {
+  poems: GeneratedSummary[];
+  total?: number;
+  filteredTotal?: number;
+  authors?: string[];
+}
+
+export async function getGeneratedIndex(params: { offset?: number; limit?: number; author?: string } = {}): Promise<GeneratedIndex> {
+  const sp = new URLSearchParams();
+  if (params.author) sp.set('author', params.author);
+  if (params.offset !== undefined) sp.set('offset', String(params.offset));
+  if (params.limit !== undefined) sp.set('limit', String(params.limit));
+  const qs = sp.toString();
+  return fetchJson(`/generated${qs ? `?${qs}` : ''}`);
 }
 // ── AI 视频生成（逐图×诗句 → 逐段视频，后端 /api/video/:id） ────────
 export interface VideoClip {

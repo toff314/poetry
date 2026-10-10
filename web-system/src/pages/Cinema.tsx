@@ -177,10 +177,9 @@ export default function Cinema() {
           }
         });
       });
-      items.forEach((it) => it.scenes.forEach((s) => {
-        const img = new Image();
-        img.src = s.image;
-      }));
+      // 懒加载：只温载第一部首两幕（其余由 Theater 按播放进度预载），不再全量预载片单
+      const first = items[0];
+      if (first) transitionEngine.preload(first.scenes.slice(0, 2).map((s) => s.image));
     } catch {
       setError('排片失败，请稍后重试。');
     } finally {
@@ -488,15 +487,35 @@ function Theater(props: {
     };
   }, []);
 
-  /* 画面预载 */
+  /* 画面懒预载：只温载当前幕、下一幕、下一部首幕（纹理与 <img> 共用 HTTP 缓存） */
   useEffect(() => {
-    const urls = program.flatMap((p) => p.scenes.map((s) => s.image));
+    const it = program[poemIdx];
+    if (!it) return;
+    const urls: string[] = [];
+    const cur = it.scenes[stepIdx % it.scenes.length];
+    if (cur) urls.push(cur.image);
+    const nxt = it.scenes[(stepIdx + 1) % it.scenes.length];
+    if (nxt && nxt !== cur) urls.push(nxt.image);
+    const np = program[poemIdx + 1];
+    if (np) urls.push(np.scenes[0].image);
     transitionEngine.preload(urls);
-    urls.forEach((u) => {
-      const img = new Image();
-      img.src = u;
-    });
-  }, [program]);
+  }, [program, poemIdx, stepIdx]);
+
+  /* 离场统一静音：Theater 卸载时暂停两条音轨并清掉全部定时器。
+     <audio> 移出 DOM 不会自动停止，残留播放与新场次叠加即"两个背景音" */
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      voiceRef.current?.pause();
+      window.clearTimeout(stepTimerRef.current);
+      window.clearTimeout(poemTimerRef.current);
+      window.clearTimeout(voicePauseTimerRef.current);
+      window.clearTimeout(controlsTimerRef.current);
+      gestureRetryCleanupRef.current?.();
+      gestureRetryCleanupRef.current = null;
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   /* 幕间转场：运行 WebGL 逐帧渲染，结束后提交 displayed */
   const runTransition = useCallback(
@@ -864,6 +883,7 @@ function Theater(props: {
             src={displayedItem.scenes[displayedScene].image}
             alt=""
             draggable={false}
+            decoding="async"
             className={`absolute inset-0 w-full h-full object-cover cinema-kb ${kbVariant(`${displayed.poem}-${displayedScene}`)}`}
           />
           {/* WebGL 转场层 */}
@@ -1020,8 +1040,8 @@ function Theater(props: {
         </div>
       </div>
 
-      <audio ref={audioRef} preload="auto" />
-      <audio ref={voiceRef} preload="auto" />
+      <audio ref={audioRef} preload="metadata" />
+      <audio ref={voiceRef} preload="none" />
     </div>
   );
 }
