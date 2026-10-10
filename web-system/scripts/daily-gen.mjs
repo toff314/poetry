@@ -21,7 +21,10 @@ const NODE = process.execPath;
 const GEN = path.join(ROOT, 'scripts', 'generate-ai.mjs');
 const DB_PATH = path.join(ROOT, 'data', 'ranking.db');
 
-function log(m) { console.log(`[${new Date().toISOString().slice(0, 19)}] ${m}`); }
+function log(m) {
+  const t = new Date(), p = n => String(n).padStart(2, '0');
+  console.log(`[${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}] ${m}`);
+}
 
 let db;
 try { db = new DatabaseSync(DB_PATH); } catch (e) { log('打开 ranking.db 失败: ' + e.message); process.exit(1); }
