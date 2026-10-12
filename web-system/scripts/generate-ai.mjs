@@ -247,7 +247,7 @@ const imgTasks = [
 const DOUBAO_CLI = ['/usr/local/bin/doubao-cli', '/usr/bin/doubao-cli'].find(p => { try { fs.accessSync(p, fs.constants.X_OK); return true; } catch { return false; } }) || 'doubao-cli';
 function runDoubaoImage(prompt, out) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'poetry-doubao-'));
-  const r = spawnSync(DOUBAO_CLI, ['generate', prompt, '--style', 'cinematic', '--ratio', '16:9', '--compress-width', '0', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
+  const r = spawnSync(DOUBAO_CLI, ['generate', prompt, '--ratio', '16:9', '--compress-width', '0', '--output', tmp], { encoding: 'utf-8', timeout: 300000 });
   const src = path.join(tmp, 'cover.jpeg');
   if (r.status !== 0 || !fs.existsSync(src)) {
     const errOutput = (r.stderr || r.stdout || '').slice(-400);
@@ -270,6 +270,11 @@ for (let i = 0; i < imgTasks.length; i++) {
   }
   setStage('images', 12 + Math.round((i / imgTasks.length) * 58), `AI 生图中 ${t.name} (${i + 1}/${imgTasks.length})…`);
   runDoubaoImage(buildPrompt(t.hint), out);
+  if (i < imgTasks.length - 1) {
+    const pause = 15000 + Math.floor(Math.random() * 20000);
+    console.log(`[生图节奏] 暂停 ${(pause / 1000).toFixed(0)}s 模拟人工间隔…`);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pause);
+  }
 }
 
 // ── 4. 分段朗诵（默认云健） ────────────────────────────────────────
