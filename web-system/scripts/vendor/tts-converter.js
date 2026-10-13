@@ -13,6 +13,9 @@ const { EdgeTTS } = require('node-edge-tts');
 const { program } = require('commander');
 const fs = require('fs/promises');
 const path = require('path');
+
+// 服务器 IPv6 不通，api.msedgeservices.com 会解析出 AAAA，强制 IPv4 优先
+require('node:dns').setDefaultResultOrder('ipv4first');
 const os = require('os');
 const { execSync } = require('child_process');
 

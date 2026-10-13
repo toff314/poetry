@@ -235,7 +235,6 @@ const ERA = String(poem.dynasty || '古典').replace('朝', '') || '古典';
 function buildPrompt(hint) {
   return (
     `电影感写实古风画面（${ERA}氛围、真实摄影质感）：${hint}` +
-    `；构图中主体偏右侧，左侧与下方保留暗部负空间以便叠加竖排诗句` +
     `；写实历史电影质感、真实摄影、无文字、无书法、无印章、无水印、无现代物体`
   );
 }
