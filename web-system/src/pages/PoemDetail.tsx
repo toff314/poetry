@@ -601,11 +601,11 @@ export default function PoemDetail() {
       {/* Navigation */}
       <div className="fixed top-20 left-6 lg:left-10 z-40">
         <Link
-          to="/library"
+          to={id && id.startsWith('original-') ? '/original' : '/library'}
           className="inline-flex items-center gap-2 text-sm text-paper/80 hover:text-gold transition-colors"
         >
           <ArrowLeft size={16} />
-          返回诗词库
+          {id && id.startsWith('original-') ? '返回原创馆' : '返回诗词库'}
         </Link>
       </div>
 

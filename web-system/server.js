@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { DatabaseSync } from 'node:sqlite';
 import http from 'node:http';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GENERATED_DIR = path.join(__dirname, 'data', 'generated');
+const ORIGINAL_DIR = path.join(__dirname, 'data', 'original');
+fs.mkdirSync(ORIGINAL_DIR, { recursive: true });
 const POETRY_DB = process.env.POETRY_DB || path.join(__dirname, 'data', 'poetry.db');
 
 const app = express();
@@ -422,8 +425,187 @@ app.get('/api/generated', (req, res) => {
 app.get('/api/generated/:id', (req, res) => {
   try {
     const file = path.join(GENERATED_DIR, `${req.params.id}.json`);
+    if (fs.existsSync(file)) return res.json(JSON.parse(fs.readFileSync(file, 'utf-8')));
+    // 原创模块复用沉浸页模板：/api/generated 兜底读 data/original
+    const ofile = path.join(ORIGINAL_DIR, `${req.params.id}.json`);
+    if (fs.existsSync(ofile)) return res.json(JSON.parse(fs.readFileSync(ofile, 'utf-8')));
+    return res.status(404).json({ error: 'not found' });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// ── 原创诗馆（个人创作；密码准入，未授权引导加微信） ─────────────
+function getOriginalIndex() {
+  const file = path.join(ORIGINAL_DIR, 'index.json');
+  if (!fs.existsSync(file)) return { poems: [] };
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
+}
+
+function saveOriginalIndex(index) {
+  fs.writeFileSync(path.join(ORIGINAL_DIR, 'index.json'), JSON.stringify(index, null, 2));
+}
+
+function originalSummary(p, full) {
+  return {
+    id: p.id,
+    title: p.title,
+    author: p.author,
+    dynasty: p.dynasty || '原创',
+    line: full?.definingLine || (full?.content || '').split('\n').find(Boolean) || '',
+    createdAt: p.createdAt || full?.createdAt || 0,
+  };
+}
+
+app.get('/api/original', (_req, res) => {
+  try {
+    const index = getOriginalIndex();
+    const poems = (index.poems || [])
+      .map((p) => {
+        let full = null;
+        try { full = JSON.parse(fs.readFileSync(path.join(ORIGINAL_DIR, `${p.id}.json`), 'utf-8')); } catch { /* keep */ }
+        return originalSummary(p, full);
+      })
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    res.json({ poems, total: poems.length });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+app.get('/api/original-art/:id', (req, res) => {
+  try {
+    const f = path.join(TASK_DIR, `original-art-${req.params.id}.json`);
+    if (!fs.existsSync(f)) return res.status(404).json({ error: 'no such task' });
+    res.json(JSON.parse(fs.readFileSync(f, 'utf-8')));
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+app.get('/api/original/:id', (req, res) => {
+  try {
+    const file = path.join(ORIGINAL_DIR, `${req.params.id}.json`);
     if (!fs.existsSync(file)) return res.status(404).json({ error: 'not found' });
     res.json(JSON.parse(fs.readFileSync(file, 'utf-8')));
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// 创作口令：env ORIGINAL_ADMIN_PASSWORD；验证通过发短期 token（内存，12h）
+const ORIGINAL_PWD = process.env.ORIGINAL_ADMIN_PASSWORD || '';
+const originalTokens = new Map(); // token -> exp (ms)
+const ORIGINAL_TOKEN_TTL = 12 * 60 * 60 * 1000;
+const originalAuthRate = new Map();
+
+function originalRateOk(ip) {
+  const now = Date.now();
+  const arr = (originalAuthRate.get(ip) || []).filter((t) => now - t < 60000);
+  if (arr.length >= 5) { originalAuthRate.set(ip, arr); return false; }
+  arr.push(now);
+  originalAuthRate.set(ip, arr);
+  return true;
+}
+
+function pwdEqual(a, b) {
+  const ba = crypto.createHash('sha256').update(String(a)).digest();
+  const bb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+app.post('/api/original/auth', (req, res) => {
+  try {
+    if (!ORIGINAL_PWD) return res.status(500).json({ error: '未配置 ORIGINAL_ADMIN_PASSWORD' });
+    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'local');
+    if (!originalRateOk(ip)) return res.status(429).json({ error: '尝试太频繁，请稍后再试' });
+    const password = String(req.body?.password || '');
+    if (!password || !pwdEqual(password, ORIGINAL_PWD)) {
+      return res.status(401).json({ error: '密码不正确' });
+    }
+    const token = crypto.randomBytes(24).toString('hex');
+    originalTokens.set(token, Date.now() + ORIGINAL_TOKEN_TTL);
+    res.json({ success: true, token, expiresIn: ORIGINAL_TOKEN_TTL });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+function originalTokenOk(req) {
+  const m = /^Bearer\s+(.+)$/.exec(String(req.headers.authorization || ''));
+  if (!m) return false;
+  const exp = originalTokens.get(m[1]);
+  if (!exp) return false;
+  if (Date.now() > exp) { originalTokens.delete(m[1]); return false; }
+  return true;
+}
+
+// 把诗行两两分组为幕（沉浸页 section 结构）
+function buildOriginalSections(content) {
+  const lines = String(content || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const idxCN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  const sections = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    sections.push({
+      id: `scene-${sections.length + 1}`,
+      index: idxCN[sections.length] || String(sections.length + 1),
+      original: lines.slice(i, i + 2).join('\n'),
+      literal: '',
+      analysis: '',
+      image: '/assets/bg/gallery.jpg',
+    });
+  }
+  return sections;
+}
+
+app.post('/api/original', async (req, res) => {
+  try {
+    if (!originalTokenOk(req)) return res.status(401).json({ error: '未授权或已过期，请重新输入密码' });
+    const title = String(req.body?.title || '').trim().slice(0, 40);
+    const content = String(req.body?.content || '').trim().slice(0, 4000);
+    const author = String(req.body?.author || 'toff314').trim().slice(0, 24) || 'toff314';
+    if (!title) return res.status(400).json({ error: '标题不能为空' });
+    if (!content) return res.status(400).json({ error: '正文不能为空' });
+    const slug = title.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'poem';
+    const id = `original-${slug}-${Date.now().toString(36)}`;
+    const now = Date.now();
+    const poem = {
+      id,
+      title,
+      author,
+      dynasty: '原创',
+      content,
+      kicker: String(req.body?.kicker || '原创').trim().slice(0, 40) || '原创',
+      definingLine: String(req.body?.definingLine || '').trim().slice(0, 60),
+      intro: String(req.body?.intro || '').trim().slice(0, 600),
+      heroImage: '/assets/bg/gallery.jpg',
+      sections: buildOriginalSections(content),
+      closing: String(req.body?.closing || '').trim().slice(0, 2000),
+      audio: { defaultVoiceId: '', voices: [] },
+      license: 'reserved',
+      createdAt: now,
+    };
+    fs.writeFileSync(path.join(ORIGINAL_DIR, `${id}.json`), JSON.stringify(poem, null, 2));
+    const index = getOriginalIndex();
+    index.poems = [...(index.poems || []).filter((p) => p.id !== id), { id, title, author, createdAt: now }];
+    saveOriginalIndex(index);
+    // 异步 AI 配图（doubao-cli），失败不影响入库
+    try {
+      const { spawn } = await import('child_process');
+      const artScript = path.join(__dirname, 'scripts', 'generate-original-art.mjs');
+      if (fs.existsSync(artScript)) {
+        const art = spawn('node', [artScript, id], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+        let artLog = '';
+        art.stdout.on('data', (d) => { artLog += d; });
+        art.stderr.on('data', (d) => { artLog += d; });
+        art.on('exit', (code) => {
+          if (code !== 0) console.error(`[original-art] ${id} 配图失败: ${artLog.slice(-300)}`);
+        });
+      }
+    } catch (e) {
+      console.error('[original-art] spawn 失败:', String(e));
+    }
+    res.json({ success: true, poem });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

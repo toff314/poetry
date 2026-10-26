@@ -82,6 +82,57 @@ export async function getGeneratedPoem(id: string): Promise<GeneratedPoem> {
   return fetchJson(`/generated/${id}`);
 }
 
+// ── 原创诗馆（个人创作） ────────────────────────────────────────────
+export interface OriginalSummary {
+  id: string;
+  title: string;
+  author: string;
+  dynasty: string;
+  line: string;
+  createdAt: number;
+}
+
+export interface OriginalIndex {
+  poems: OriginalSummary[];
+  total: number;
+}
+
+export async function getOriginalIndex(): Promise<OriginalIndex> {
+  return fetchJson('/original');
+}
+
+export async function authOriginalPassword(password: string): Promise<{ success: boolean; token?: string; error?: string }> {
+  const res = await fetch(`${API_BASE}/original/auth`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((json as { error?: string }).error || `API error: ${res.status}`);
+  return json as { success: boolean; token?: string };
+}
+
+export interface OriginalPayload {
+  title: string;
+  content: string;
+  author?: string;
+  kicker?: string;
+  definingLine?: string;
+  intro?: string;
+  closing?: string;
+}
+
+export async function createOriginal(token: string, payload: OriginalPayload): Promise<{ success: boolean; poem?: { id: string } }> {
+  const res = await fetch(`${API_BASE}/original`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((json as { error?: string }).error || `API error: ${res.status}`);
+  return json as { success: boolean; poem?: { id: string } };
+}
+
 export interface PoemPlain {
   id: string;
   title: string;

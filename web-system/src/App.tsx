@@ -10,6 +10,7 @@ import Gallery from './pages/Gallery';
 import Topics from './pages/Topics';
 import Topic from './pages/Topic';
 import Cinema from './pages/Cinema';
+import Original from './pages/Original';
 import {
   isAmbientBgmEnabled,
   toggleAmbientBgm,
@@ -68,6 +69,7 @@ function Nav() {
     { to: '/gallery', label: '沉浸画廊' },
     { to: '/cinema', label: '放映厅' },
     { to: '/topics', label: '专题' },
+    { to: '/original', label: '原创' },
   ];
 
   return (
@@ -123,6 +125,7 @@ export default function App() {
           <Route path="/cinema" element={<Cinema />} />
           <Route path="/topics" element={<Topics />} />
           <Route path="/topic/:tag" element={<Topic />} />
+          <Route path="/original" element={<Original />} />
           <Route path="/poem/:id" element={<PoemDetail />} />
         </Routes>
       </main>
