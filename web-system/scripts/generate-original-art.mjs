@@ -121,6 +121,9 @@ try {
     s.image = `/generated/${id}/scene-${i + 1}.jpg${vOf(path.join(genDir, `scene-${i + 1}.jpg`))}`;
   });
   fs.writeFileSync(poemFile, JSON.stringify(poem, null, 2));
+  // 画廊列表用 640px 缩略图（原图 5-8MB 会拖垮列表页）；幂等，失败不阻塞交付
+  const thumbRs = spawnSync('python3', [path.join(__dirname, 'make-hero-thumbs.py'), String(id)], { encoding: 'utf-8', timeout: 60000 });
+  if (thumbRs.status !== 0) console.warn(`⚠ 缩略图生成失败（不影响配图）: ${(thumbRs.stderr || thumbRs.stdout || '').slice(-200)}`);
   saveTask({ status: 'done', stage: 'done', progress: 100, detail: '配图完成', completedAt: Date.now() });
   console.log('[done] 图片 URL 已回写', poemFile);
 } catch (e) {

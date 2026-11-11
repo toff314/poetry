@@ -54,5 +54,10 @@ for (const r of rows) {
     if (a >= 3) db.prepare("UPDATE ranking SET status='skipped' WHERE rank=?").run(r.rank);
   }
 }
+// 兜底：为今日及历史遗漏的沉浸页补齐画廊缩略图（幂等，全量扫描仅秒级）
+{
+  const tr = spawnSync('python3', [path.join(ROOT, 'scripts', 'make-hero-thumbs.py')], { encoding: 'utf-8', timeout: 300000 });
+  log(`缩略图兜底: ${(tr.stdout || tr.stderr || '').trim() || '无输出'}`);
+}
 db.close();
 log(DRY ? 'dry-run 结束' : '本次 cron 结束');

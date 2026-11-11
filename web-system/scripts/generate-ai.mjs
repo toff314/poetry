@@ -337,6 +337,10 @@ const generated = {
 };
 fs.writeFileSync(path.join(DATA_DIR, `${rawId}.json`), JSON.stringify(generated, null, 2));
 
+// 画廊列表用 640px 缩略图（原图 5-8MB 会拖垮列表页）；幂等，失败不阻塞交付
+const thumbRs = spawnSync('python3', [path.join(__dirname, 'make-hero-thumbs.py'), String(rawId)], { encoding: 'utf-8', timeout: 60000 });
+if (thumbRs.status !== 0) console.warn(`⚠ 缩略图生成失败（不影响沉浸页）: ${(thumbRs.stderr || thumbRs.stdout || '').slice(-200)}`);
+
 // 更新 index.json
 const idxPath = path.join(DATA_DIR, 'index.json');
 const index = fs.existsSync(idxPath) ? JSON.parse(fs.readFileSync(idxPath, 'utf-8')) : { poems: [] };
