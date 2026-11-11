@@ -404,7 +404,11 @@ app.get('/api/generated', (req, res) => {
           const data = JSON.parse(fs.readFileSync(file, 'utf-8'));
           const hero = data && typeof data.heroImage === 'string' ? data.heroImage : '';
           hasArt = hero.startsWith('/generated/');
-          cover = hasArt ? hero : '';
+          if (hasArt) {
+            // 画廊列表用 640px 缩略图（原图 5-8MB 会拖垮列表页），未生成时回退原图
+            const thumb = hero.replace(/\.jpg(\?.*)?$/, '-thumb.jpg');
+            cover = fs.existsSync(path.join(__dirname, 'public', thumb)) ? thumb : hero;
+          }
           line = data && (data.definingLine || data.content)
             ? String(data.definingLine || data.content).slice(0, 60)
             : '';

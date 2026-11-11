@@ -1,5 +1,5 @@
 import SiteFooter from '../components/SiteFooter';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Play, ArrowRight, Calendar, BookOpen } from 'lucide-react';
 import { getGeneratedIndex, getRankings, tagText, type RankInfo } from '../lib/api';
@@ -15,7 +15,7 @@ const PALETTES: [string, string][] = [
   ['#0a0a0b', '#243a2a'],
 ];
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 10;
 
 function hashIdx(s: string, n: number): number {
   let h = 0;
@@ -30,56 +30,91 @@ export default function Gallery() {
   const [authors, setAuthors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [done, setDone] = useState(false);
   const [author, setAuthor] = useState('');
   const [viewing, setViewing] = useState<GeneratedSummary | null>(null);
   const [rankMap, setRankMap] = useState<Record<string, RankInfo>>({});
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const stateRef = useRef({ items, loading, loadingMore, author });
-  stateRef.current = { items, loading, loadingMore, author };
+  const fetchedRef = useRef(0); // 服务端游标：已请求过的条数
+  const totalRef = useRef(0);
+  const busyRef = useRef(false); // 同步锁，防止并发触发重复请求
+  const doneRef = useRef(false); // 同步锁，加载完毕后不再发起请求
+  const authorRef = useRef(author);
+  authorRef.current = author;
+  const loadingRef = useRef(loading);
+  loadingRef.current = loading;
 
   const loadPage = useCallback(async (offset: number, poet: string) => {
     const res = await getGeneratedIndex({ offset, limit: PAGE_SIZE, author: poet });
-    setTotal((prev) => (offset === 0 ? (res.filteredTotal ?? res.poems.length) : prev));
-    if (offset === 0 && res.authors) setAuthors(res.authors);
+    if (offset === 0) {
+      totalRef.current = res.filteredTotal ?? res.poems.length;
+      setTotal(totalRef.current);
+      if (res.authors) setAuthors(res.authors);
+    }
     setItems((prev) => {
       const merged = offset === 0 ? res.poems : [...prev, ...res.poems];
       const seen = new Set<string>();
       return merged.filter((g) => (seen.has(g.id) ? false : (seen.add(g.id), true)));
     });
+    fetchedRef.current = offset + res.poems.length;
+    const finished = res.poems.length < PAGE_SIZE || fetchedRef.current >= totalRef.current;
+    doneRef.current = finished;
+    setDone(finished);
     return res.poems.length;
   }, []);
 
+  // 几何判定 + 同步锁：哨兵进入视口附近就拉下一批；拉完自链一次，
+  // 内容不够高（大视口/短内容）时无需滚动即可继续填充，直到铺满或加载完毕
+  const maybeLoad = useCallback(() => {
+    const el = sentinelRef.current;
+    if (!el || busyRef.current || doneRef.current || loadingRef.current) return;
+    if (el.getBoundingClientRect().top >= window.innerHeight + 600) return;
+    busyRef.current = true;
+    setLoadingMore(true);
+    loadPage(fetchedRef.current, authorRef.current)
+      .catch(() => {})
+      .finally(() => {
+        busyRef.current = false;
+        setLoadingMore(false);
+        setTimeout(maybeLoad, 60);
+      });
+  }, [loadPage]);
+
+  // 首屏 + 诗人切换：重置游标重新拉
   useEffect(() => {
     let cancelled = false;
+    fetchedRef.current = 0;
+    busyRef.current = false;
+    doneRef.current = false;
+    setDone(false);
     setLoading(true);
     setItems([]);
     loadPage(0, author)
       .catch(() => { if (!cancelled) setItems([]); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+        setTimeout(maybeLoad, 80); // 首屏不满视口时自动续拉
+      });
     return () => { cancelled = true; };
-  }, [author, loadPage]);
+  }, [author, loadPage, maybeLoad]);
 
   useEffect(() => {
     getRankings().then(setRankMap).catch(() => setRankMap({}));
   }, []);
 
-  const hasMore = items.length < total;
-
+  // 滚动到底自动追加
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el) return;
+    if (!el || loading) return;
     const io = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) return;
-      const s = stateRef.current;
-      if (s.loading || s.loadingMore || s.items.length >= (total || Infinity)) return;
-      setLoadingMore(true);
-      loadPage(s.items.length, s.author).finally(() => setLoadingMore(false));
+      if (entries[0].isIntersecting) maybeLoad();
     }, { rootMargin: '600px 0px' });
     io.observe(el);
     return () => io.disconnect();
-  }, [loadPage, total, loading]);
+  }, [loading, author, maybeLoad]);
 
-  const shown = useMemo(() => items, [items]);
+  const shown = items;
 
   return (
     <div className="min-h-screen bg-ink pb-24">
@@ -101,7 +136,7 @@ export default function Gallery() {
               去诗词库制作新沉浸页
             </Link>
             <span className="text-xs text-silver/70">
-              已收录 {total} 部{items.filter((g) => g.hasArt).length > 0 ? ` · 已加载含实景封面 ${items.filter((g) => g.hasArt).length} 部` : ''} · 滚动自动加载
+              已收录 {total} 部{items.filter((g) => g.hasArt).length > 0 ? ` · 已加载含实景封面 ${items.filter((g) => g.hasArt).length} 部` : ''} · 滚动自动加载更多
             </span>
           </div>
         </div>
@@ -111,16 +146,16 @@ export default function Gallery() {
         {/* 诗人筛选（同诗词库按作者） */}
         {authors.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-10">
-            <button
-              onClick={() => setAuthor('')}
-              className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${author === '' ? 'bg-gold text-ink border-gold' : 'border-darkline text-silver hover:border-silver'}`}
-            >
-              全部诗人
-            </button>
-            {authors.map((a) => (
               <button
-                key={a}
-                onClick={() => setAuthor(a === author ? '' : a)}
+                onClick={() => setAuthor('')}
+                className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${author === '' ? 'bg-gold text-ink border-gold' : 'border-darkline text-silver hover:border-silver'}`}
+              >
+                全部诗人
+              </button>
+              {authors.map((a) => (
+                <button
+                  key={a}
+                  onClick={() => setAuthor(a === author ? '' : a)}
                 className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${author === a ? 'bg-gold/15 text-gold border-gold/60' : 'border-darkline text-silver hover:border-silver'}`}
               >
                 {a}
@@ -254,7 +289,7 @@ export default function Gallery() {
                 ))}
               </div>
             )}
-            {!hasMore && !loadingMore && (
+            {done && !loadingMore && (
               <p className="text-center text-xs text-silver/40 pt-4">— 已加载全部 {total} 部 —</p>
             )}
           </div>
